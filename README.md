@@ -64,3 +64,4 @@ We welcome contributions! Areas where help is needed:
 * Performance benchmarks
   
 ## 📄 License
+### This project is licensed under the Apache License 2.0 - see the [LICENSE](https://github.com/telegram-kt/telegram-kt/blob/master/LICENSE) file for details.
