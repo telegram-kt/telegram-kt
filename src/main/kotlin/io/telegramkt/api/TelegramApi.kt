@@ -6,8 +6,11 @@ import io.telegramkt.model.file.File
 import io.telegramkt.model.file.input.InputFile
 import io.telegramkt.model.keyboard.reply.InlineKeyboardMarkup
 import io.telegramkt.model.keyboard.reply.ReplyMarkup
+import io.telegramkt.model.keyboard.reply.parameters.ReplyParameters
 import io.telegramkt.model.message.Message
+import io.telegramkt.model.message.MessageId
 import io.telegramkt.model.message.entity.MessageEntity
+import io.telegramkt.model.suggested.SuggestedPostParameters
 import io.telegramkt.model.update.Update
 import io.telegramkt.model.user.User
 
@@ -47,6 +50,58 @@ interface TelegramApi {
         replyMarkup: InlineKeyboardMarkup? = null,
         businessConnectionId: String? = null,
     ): Message
+
+    suspend fun deleteMessage(
+        chatId: ChatId,
+        messageId: Int,
+    ): Boolean
+
+    suspend fun deleteMessages(
+        chatId: ChatId,
+        messageIds: List<Int>,
+    ): Boolean
+
+    suspend fun forwardMessage(
+        chatId: ChatId,
+        fromChatId: ChatId,
+        messageId: Int,
+        messageThreadId: Int? = null,
+        directMessagesTopicId: Int? = null,
+        videoStartTimestamp: Int? = null,
+        disableNotification: Boolean? = null,
+        protectContent: Boolean? = null,
+        messageEffectId: String? = null,
+        suggestedPostParameters: SuggestedPostParameters? = null,
+    ): Message
+
+    suspend fun forwardMessages(
+        chatId: ChatId,
+        fromChatId: ChatId,
+        messageIds: List<Int>,
+        messageThreadId: Int? = null,
+        directMessagesTopicId: Int? = null,
+        disableNotification: Boolean? = null,
+        protectContent: Boolean? = null,
+    ): Message
+
+    suspend fun copyMessage(
+        chatId: ChatId,
+        fromChatId: ChatId,
+        messageId: Int,
+        messageThreadId: Int? = null,
+        directMessagesTopicId: Int? = null,
+        videoStartTimestamp: Int? = null,
+        caption: String? = null,
+        parseMode: ParseMode? = null,
+        captionEntities: List<MessageEntity>? = null,
+        showCaptionAboveMedia: Boolean? = null,
+        disableNotification: Boolean? = null,
+        protectContent: Boolean? = null,
+        allowPaidBroadcast: Boolean? = null,
+        messageEffectId: String? = null,
+        replyParameters: ReplyParameters? = null,
+        replyMarkup: ReplyMarkup? = null,
+    ): MessageId
 
     suspend fun getFile(fileId: String) : File
 

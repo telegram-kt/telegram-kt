@@ -6,8 +6,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
 class TelegramBot(
@@ -25,11 +23,12 @@ class TelegramBot(
         pollingJob = scope.launch {
             println("Bot started polling...")
             client.updatesFlow(limit, timeout, allowedUpdates)
-                .onEach { update ->
-                    val ctx = BotContext(client, update, scope)
-                    registry.handle(ctx)
+                .collect { update ->
+                    scope.launch {
+                        val ctx = BotContext(client, update, scope)
+                        registry.handle(ctx)
+                    }
                 }
-                .collect()
         }
     }
 

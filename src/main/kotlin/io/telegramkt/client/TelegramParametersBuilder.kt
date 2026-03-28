@@ -2,15 +2,17 @@ package io.telegramkt.client
 
 import kotlinx.serialization.json.Json
 
-class TelegramParametersBuilder(private val json: Json) {
+class TelegramParametersBuilder(val json: Json) {
     val params = mutableMapOf<String, Any?>()
 
     fun parameter(key: String, value: Any?) {
         params[key] = value
     }
 
-    fun jsonParameter(key: String, value: Any?) {
-        params[key] = value?.let { json.encodeToString(it) }
+    inline fun <reified T> jsonParameter(key: String, value: T?) {
+        if (value != null) {
+            params[key] = json.encodeToString(value)
+        }
     }
 
     fun parameter(key: String, value: String?) {

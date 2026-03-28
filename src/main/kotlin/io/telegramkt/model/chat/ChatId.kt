@@ -1,5 +1,8 @@
 package io.telegramkt.model.chat
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 sealed class ChatId {
     data class ById(val id: Long) : ChatId()
     data class ByUsername(val username: String) : ChatId()

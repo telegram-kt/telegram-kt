@@ -21,8 +21,11 @@ import io.telegramkt.model.chat.ChatId
 import io.telegramkt.model.file.input.InputFile
 import io.telegramkt.model.keyboard.reply.InlineKeyboardMarkup
 import io.telegramkt.model.keyboard.reply.ReplyMarkup
+import io.telegramkt.model.keyboard.reply.parameters.ReplyParameters
 import io.telegramkt.model.message.Message
+import io.telegramkt.model.message.MessageId
 import io.telegramkt.model.message.entity.MessageEntity
+import io.telegramkt.model.suggested.SuggestedPostParameters
 import io.telegramkt.model.update.Update
 import io.telegramkt.model.user.User
 import kotlinx.coroutines.delay
@@ -107,6 +110,107 @@ class TelegramBotClient(
         parameter("disable_web_page_preview", disableWebPagePreview)
         parameter("reply_markup", replyMarkup?.let { json.encodeToString(it) })
         parameter("business_connection_id", businessConnectionId)
+    }
+
+    override suspend fun deleteMessage(chatId: ChatId, messageId: Int): Boolean = call("deleteMessage") {
+        parameter("chat_id", chatId.toApiParam())
+        parameter("message_id", messageId)
+    }
+
+    override suspend fun deleteMessages(
+        chatId: ChatId,
+        messageIds: List<Int>
+    ): Boolean {
+        require(messageIds.isNotEmpty()) { "messageIds must not be empty" }
+        require(messageIds.size <= 100) { "messageIds must not exceed 100 items, got ${messageIds.size}" }
+
+        return call<Boolean>("deleteMessages") {
+            parameter("chat_id", chatId.toApiParam())
+            parameter("message_ids", messageIds)
+        }
+    }
+
+    override suspend fun forwardMessage(
+        chatId: ChatId,
+        fromChatId: ChatId,
+        messageId: Int,
+        messageThreadId: Int?,
+        directMessagesTopicId: Int?,
+        videoStartTimestamp: Int?,
+        disableNotification: Boolean?,
+        protectContent: Boolean?,
+        messageEffectId: String?,
+        suggestedPostParameters: SuggestedPostParameters?
+    ): Message = call("forwardMessage") {
+        parameter("chat_id", chatId.toApiParam())
+        parameter("from_chat_id", fromChatId.toApiParam())
+        parameter("message_id", messageId)
+        parameter("message_thread_id", messageThreadId)
+        parameter("direct_messages_topic_id", directMessagesTopicId)
+        parameter("video_start_timestamp", videoStartTimestamp)
+        parameter("disable_notification", disableNotification)
+        parameter("protect_content", protectContent)
+        parameter("message_effect_id", messageEffectId)
+        parameter("suggested_post_parameters", suggestedPostParameters)
+    }
+
+    override suspend fun forwardMessages(
+        chatId: ChatId,
+        fromChatId: ChatId,
+        messageIds: List<Int>,
+        messageThreadId: Int?,
+        directMessagesTopicId: Int?,
+        disableNotification: Boolean?,
+        protectContent: Boolean?
+    ): Message {
+        require(messageIds.isNotEmpty()) { "messageIds must not be empty" }
+        require(messageIds.size <= 100) { "messageIds must not exceed 100 items, got ${messageIds.size}" }
+
+        return call("forwardMessages") {
+            parameter("chat_id", chatId.toApiParam())
+            parameter("from_chat_id", fromChatId.toApiParam())
+            parameter("message_ids", messageIds)
+            parameter("message_thread_id", messageThreadId)
+            parameter("direct_messages_topic_id", directMessagesTopicId)
+            parameter("disable_notification", disableNotification)
+            parameter("protect_content", protectContent)
+        }
+    }
+
+    override suspend fun copyMessage(
+        chatId: ChatId,
+        fromChatId: ChatId,
+        messageId: Int,
+        messageThreadId: Int?,
+        directMessagesTopicId: Int?,
+        videoStartTimestamp: Int?,
+        caption: String?,
+        parseMode: ParseMode?,
+        captionEntities: List<MessageEntity>?,
+        showCaptionAboveMedia: Boolean?,
+        disableNotification: Boolean?,
+        protectContent: Boolean?,
+        allowPaidBroadcast: Boolean?,
+        messageEffectId: String?,
+        replyParameters: ReplyParameters?,
+        replyMarkup: ReplyMarkup?
+    ): MessageId = call("copyMessage") {
+        parameter("chat_id", chatId.toApiParam())
+        parameter("from_chat_id", fromChatId.toApiParam())
+        parameter("message_id", messageId)
+        parameter("message_thread_id", messageThreadId)
+        parameter("direct_messages_topic_id", directMessagesTopicId)
+        parameter("video_start_timestamp", directMessagesTopicId)
+        parameter("caption", caption)
+        parameter("parse_mode", parseMode)
+        parameter("caption_entities", captionEntities)
+        parameter("show_caption_above_media", showCaptionAboveMedia)
+        parameter("disable_notification", disableNotification)
+        parameter("protect_content", protectContent)
+        parameter("allow_paid_broadcast", allowPaidBroadcast)
+        parameter("message_effect_id", messageEffectId)
+        parameter("reply_parameters", replyParameters)
+        parameter("reply_markup", replyMarkup)
     }
 
     override suspend fun getUpdates(
