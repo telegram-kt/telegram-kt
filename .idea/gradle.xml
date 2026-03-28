@@ -11,6 +11,7 @@
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/examples" />
             <option value="$PROJECT_DIR$/examples/echoBot" />
+            <option value="$PROJECT_DIR$/examples/photoSenderBot" />
           </set>
         </option>
       </GradleProjectSettings>

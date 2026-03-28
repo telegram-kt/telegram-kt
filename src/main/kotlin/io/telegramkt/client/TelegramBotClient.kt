@@ -200,17 +200,37 @@ class TelegramBotClient(
         parameter("message_id", messageId)
         parameter("message_thread_id", messageThreadId)
         parameter("direct_messages_topic_id", directMessagesTopicId)
-        parameter("video_start_timestamp", directMessagesTopicId)
+        parameter("video_start_timestamp", videoStartTimestamp)
         parameter("caption", caption)
-        parameter("parse_mode", parseMode)
-        parameter("caption_entities", captionEntities)
+        parameter("parse_mode", parseMode?.name)
+        parameter("caption_entities", captionEntities?.let { json.encodeToString(it) })
         parameter("show_caption_above_media", showCaptionAboveMedia)
         parameter("disable_notification", disableNotification)
         parameter("protect_content", protectContent)
         parameter("allow_paid_broadcast", allowPaidBroadcast)
         parameter("message_effect_id", messageEffectId)
-        parameter("reply_parameters", replyParameters)
-        parameter("reply_markup", replyMarkup)
+        parameter("reply_parameters", replyParameters?.let { json.encodeToString(it) })
+        parameter("reply_markup", replyMarkup?.let { json.encodeToString(it) })
+    }
+
+    override suspend fun copyMessages(
+        chatId: ChatId,
+        fromChatId: ChatId,
+        messageIds: List<Int>,
+        messageThreadId: Int?,
+        directMessagesTopicId: Int?,
+        disableNotification: Boolean?,
+        protectContent: Boolean?,
+        removeCaption: Boolean?
+    ): List<MessageId> = call("copyMessages") {
+        parameter("chat_id", chatId.toApiParam())
+        parameter("from_chat_id", fromChatId.toApiParam())
+        parameter("message_ids", messageIds)
+        parameter("message_thread_id", messageThreadId)
+        parameter("direct_messages_topic_id", directMessagesTopicId)
+        parameter("disable_notification", disableNotification)
+        parameter("protect_content", protectContent)
+        parameter("remove_caption", removeCaption)
     }
 
     override suspend fun getUpdates(
@@ -245,11 +265,11 @@ class TelegramBotClient(
     }
 
     override suspend fun sendPhoto(
-        businessConnectionId: String?,
         chatId: ChatId,
+        photo: InputFile,
+        businessConnectionId: String?,
         messageThreadId: Int?,
         directMessagesTopicId: Int?,
-        photo: InputFile,
         caption: String?,
         parseMode: ParseMode?,
         captionEntities: List<MessageEntity>?,
@@ -259,13 +279,15 @@ class TelegramBotClient(
         protectContent: Boolean?,
         allowPaidBroadcast: Boolean?,
         messageEffectId: String?,
+        suggestedPostParameters: SuggestedPostParameters?,
+        replyParameters: ReplyParameters?,
         replyMarkup: ReplyMarkup?
     ): Message = call("sendPhoto") {
-        parameter("business_connection_id", businessConnectionId)
         parameter("chat_id", chatId.toApiParam())
+        parameter("photo", photo)
+        parameter("business_connection_id", businessConnectionId)
         parameter("message_thread_id", messageThreadId)
         parameter("direct_messages_topic_id", directMessagesTopicId)
-        parameter("photo", photo)
         parameter("caption", caption)
         parameter("parse_mode", parseMode?.name)
         parameter("caption_entities", captionEntities?.let { json.encodeToString(it) })
@@ -275,6 +297,256 @@ class TelegramBotClient(
         parameter("protect_content", protectContent)
         parameter("allow_paid_broadcast", allowPaidBroadcast)
         parameter("message_effect_id", messageEffectId)
+        parameter("suggested_post_parameters", suggestedPostParameters?.let { json.encodeToString(it) })
+        parameter("reply_parameters", replyParameters?.let { json.encodeToString(it) })
+        parameter("reply_markup", replyMarkup?.let { json.encodeToString(it) })
+    }
+
+    override suspend fun sendAudio(
+        chatId: ChatId,
+        audio: InputFile,
+        businessConnectionId: String?,
+        messageThreadId: Int?,
+        directMessagesTopicId: Int?,
+        caption: String?,
+        parseMode: ParseMode?,
+        captionEntities: List<MessageEntity>?,
+        duration: Int?,
+        performer: String?,
+        title: String?,
+        thumbnail: InputFile?,
+        disableNotification: Boolean?,
+        protectContent: Boolean?,
+        allowPaidBroadcast: Boolean?,
+        messageEffectId: String?,
+        suggestedPostParameters: SuggestedPostParameters?,
+        replyParameters: ReplyParameters?,
+        replyMarkup: ReplyMarkup?
+    ): Message = call("sendAudio") {
+        parameter("chat_id", chatId.toApiParam())
+        parameter("audio", audio)
+        parameter("business_connection_id", businessConnectionId)
+        parameter("message_thread_id", messageThreadId)
+        parameter("direct_messages_topic_id", directMessagesTopicId)
+        parameter("caption", caption)
+        parameter("parse_mode", parseMode?.name)
+        parameter("caption_entities", captionEntities?.let { json.encodeToString(it) })
+        parameter("duration", duration)
+        parameter("performer", performer)
+        parameter("title", title)
+        parameter("thumbnail", thumbnail)
+        parameter("disable_notification", disableNotification)
+        parameter("protect_content", protectContent)
+        parameter("allow_paid_broadcast", allowPaidBroadcast)
+        parameter("message_effect_id", messageEffectId)
+        parameter("suggested_post_parameters", suggestedPostParameters?.let { json.encodeToString(it) })
+        parameter("reply_parameters", replyParameters?.let { json.encodeToString(it) })
+        parameter("reply_markup", replyMarkup?.let { json.encodeToString(it) })
+    }
+
+    override suspend fun sendVoice(
+        chatId: ChatId,
+        voice: InputFile,
+        businessConnectionId: String?,
+        messageThreadId: Int?,
+        directMessagesTopicId: Int?,
+        caption: String?,
+        parseMode: ParseMode?,
+        captionEntities: List<MessageEntity>?,
+        duration: Int?,
+        disableNotification: Boolean?,
+        protectContent: Boolean?,
+        allowPaidBroadcast: Boolean?,
+        messageEffectId: String?,
+        suggestedPostParameters: SuggestedPostParameters?,
+        replyParameters: ReplyParameters?,
+        replyMarkup: ReplyMarkup?
+    ): Message = call("sendVoice") {
+        parameter("chat_id", chatId.toApiParam())
+        parameter("voice", voice)
+        parameter("business_connection_id", businessConnectionId)
+        parameter("message_thread_id", messageThreadId)
+        parameter("direct_messages_topic_id", directMessagesTopicId)
+        parameter("caption", caption)
+        parameter("parse_mode", parseMode?.name)
+        parameter("caption_entities", captionEntities?.let { json.encodeToString(it) })
+        parameter("duration", duration)
+        parameter("disable_notification", disableNotification)
+        parameter("protect_content", protectContent)
+        parameter("allow_paid_broadcast", allowPaidBroadcast)
+        parameter("message_effect_id", messageEffectId)
+        parameter("suggested_post_parameters", suggestedPostParameters?.let { json.encodeToString(it) })
+        parameter("reply_parameters", replyParameters?.let { json.encodeToString(it) })
+        parameter("reply_markup", replyMarkup?.let { json.encodeToString(it) })
+    }
+
+    override suspend fun sendDocument(
+        chatId: ChatId,
+        document: InputFile,
+        businessConnectionId: String?,
+        messageThreadId: Int?,
+        directMessagesTopicId: Int?,
+        thumbnail: InputFile?,
+        caption: String?,
+        parseMode: ParseMode?,
+        captionEntities: List<MessageEntity>?,
+        disableContentTypeDetection: Boolean?,
+        disableNotification: Boolean?,
+        protectContent: Boolean?,
+        allowPaidBroadcast: Boolean?,
+        messageEffectId: String?,
+        suggestedPostParameters: SuggestedPostParameters?,
+        replyParameters: ReplyParameters?,
+        replyMarkup: ReplyMarkup?
+    ): Message  = call("sendDocument") {
+        parameter("chat_id", chatId.toApiParam())
+        parameter("document", document)
+        parameter("business_connection_id", businessConnectionId)
+        parameter("message_thread_id", messageThreadId)
+        parameter("direct_messages_topic_id", directMessagesTopicId)
+        parameter("thumbnail", thumbnail)
+        parameter("caption", caption)
+        parameter("parse_mode", parseMode?.name)
+        parameter("caption_entities", captionEntities?.let { json.encodeToString(it) })
+        parameter("disable_content_type_detection", disableContentTypeDetection)
+        parameter("disable_notification", disableNotification)
+        parameter("protect_content", protectContent)
+        parameter("allow_paid_broadcast", allowPaidBroadcast)
+        parameter("message_effect_id", messageEffectId)
+        parameter("suggested_post_parameters", suggestedPostParameters?.let { json.encodeToString(it) })
+        parameter("reply_parameters", replyParameters?.let { json.encodeToString(it) })
+        parameter("reply_markup", replyMarkup?.let { json.encodeToString(it) })
+    }
+
+    override suspend fun sendVideo(
+        chatId: ChatId,
+        video: InputFile,
+        businessConnectionId: String?,
+        messageThreadId: Int?,
+        directMessagesTopicId: Int?,
+        duration: Int?,
+        width: Int?,
+        height: Int?,
+        thumbnail: InputFile?,
+        cover: InputFile?,
+        startTimestamp: Int?,
+        caption: String?,
+        parseMode: ParseMode?,
+        captionEntities: List<MessageEntity>?,
+        showCaptionAboveMedia: Boolean?,
+        hasSpoiler: Boolean?,
+        supportsStreaming: Boolean?,
+        disableNotification: Boolean?,
+        protectContent: Boolean?,
+        allowPaidBroadcast: Boolean?,
+        messageEffectId: String?,
+        suggestedPostParameters: SuggestedPostParameters?,
+        replyParameters: ReplyParameters?,
+        replyMarkup: ReplyMarkup?
+    ): Message = call("sendVideo") {
+        parameter("chat_id", chatId.toApiParam())
+        parameter("video", video)
+        parameter("business_connection_id", businessConnectionId)
+        parameter("message_thread_id", messageThreadId)
+        parameter("direct_messages_topic_id", directMessagesTopicId)
+        parameter("duration", duration)
+        parameter("width", width)
+        parameter("height", height)
+        parameter("thumbnail", thumbnail)
+        parameter("cover", cover)
+        parameter("start_timestamp", startTimestamp)
+        parameter("caption", caption)
+        parameter("parse_mode", parseMode?.name)
+        parameter("caption_entities", captionEntities?.let { json.encodeToString(it) })
+        parameter("show_caption_above_media", showCaptionAboveMedia)
+        parameter("has_spoiler", hasSpoiler)
+        parameter("supports_streaming", supportsStreaming)
+        parameter("disable_notification", disableNotification)
+        parameter("protect_content", protectContent)
+        parameter("allow_paid_broadcast", allowPaidBroadcast)
+        parameter("message_effect_id", messageEffectId)
+        parameter("suggested_post_parameters", suggestedPostParameters?.let { json.encodeToString(it) })
+        parameter("reply_parameters", replyParameters?.let { json.encodeToString(it) })
+        parameter("reply_markup", replyMarkup?.let { json.encodeToString(it) })
+    }
+
+    override suspend fun sendVideoNote(
+        chatId: ChatId,
+        videoNote: InputFile,
+        businessConnectionId: String?,
+        messageThreadId: Int?,
+        directMessagesTopicId: Int?,
+        duration: Int?,
+        length: Int?,
+        thumbnail: InputFile?,
+        disableNotification: Boolean?,
+        protectContent: Boolean?,
+        allowPaidBroadcast: Boolean?,
+        messageEffectId: String?,
+        suggestedPostParameters: SuggestedPostParameters?,
+        replyParameters: ReplyParameters?,
+        replyMarkup: ReplyMarkup?
+    ): Message = call("sendVideoNote") {
+        parameter("chat_id", chatId.toApiParam())
+        parameter("video_note", videoNote)
+        parameter("business_connection_id", businessConnectionId)
+        parameter("message_thread_id", messageThreadId)
+        parameter("direct_messages_topic_id", directMessagesTopicId)
+        parameter("duration", duration)
+        parameter("length", length)
+        parameter("thumbnail", thumbnail)
+        parameter("disable_notification", disableNotification)
+        parameter("protect_content", protectContent)
+        parameter("allow_paid_broadcast", allowPaidBroadcast)
+        parameter("message_effect_id", messageEffectId)
+        parameter("suggested_post_parameters", suggestedPostParameters?.let { json.encodeToString(it) })
+        parameter("reply_parameters", replyParameters?.let { json.encodeToString(it) })
+        parameter("reply_markup", replyMarkup?.let { json.encodeToString(it) })
+    }
+
+    override suspend fun sendAnimation(
+        chatId: ChatId,
+        animation: InputFile,
+        businessConnectionId: String?,
+        messageThreadId: Int?,
+        directMessagesTopicId: Int?,
+        duration: Int?,
+        width: Int?,
+        height: Int?,
+        thumbnail: InputFile?,
+        caption: String?,
+        parseMode: ParseMode?,
+        captionEntities: List<MessageEntity>?,
+        showCaptionAboveMedia: Boolean?,
+        hasSpoiler: Boolean?,
+        disableNotification: Boolean?,
+        protectContent: Boolean?,
+        allowPaidBroadcast: Boolean?,
+        messageEffectId: String?,
+        suggestedPostParameters: SuggestedPostParameters?,
+        replyParameters: ReplyParameters?,
+        replyMarkup: ReplyMarkup?
+    ): Message = call("sendAnimation") {
+        parameter("chat_id", chatId.toApiParam())
+        parameter("animation", animation)
+        parameter("business_connection_id", businessConnectionId)
+        parameter("message_thread_id", messageThreadId)
+        parameter("direct_messages_topic_id", directMessagesTopicId)
+        parameter("duration", duration)
+        parameter("width", width)
+        parameter("height", height)
+        parameter("thumbnail", thumbnail)
+        parameter("caption", caption)
+        parameter("parse_mode", parseMode?.name)
+        parameter("caption_entities", captionEntities?.let { json.encodeToString(it) })
+        parameter("show_caption_above_media", showCaptionAboveMedia)
+        parameter("has_spoiler", hasSpoiler)
+        parameter("disable_notification", disableNotification)
+        parameter("protect_content", protectContent)
+        parameter("allow_paid_broadcast", allowPaidBroadcast)
+        parameter("message_effect_id", messageEffectId)
+        parameter("suggested_post_parameters", suggestedPostParameters?.let { json.encodeToString(it) })
+        parameter("reply_parameters", replyParameters?.let { json.encodeToString(it) })
         parameter("reply_markup", replyMarkup?.let { json.encodeToString(it) })
     }
 

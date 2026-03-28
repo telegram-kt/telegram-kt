@@ -43,7 +43,13 @@ class HandlerRegistry {
             when {
                 ctx.message?.text?.startsWith("/") == true -> {
                     val fullText = ctx.message?.text!!
-                    val cmd = fullText.substring(1).split('@').first().lowercase()
+                    val cmd = fullText
+                        .removePrefix("/")
+                        .split(' ')
+                        .first()
+                        .split('@')
+                        .first()
+                        .lowercase()
                     val args = fullText.split("\\s+".toRegex()).drop(1)
 
                     commands[cmd]?.invoke(ctx, args)

@@ -3,3 +3,4 @@ plugins {
 }
 rootProject.name = "telegram-kt"
 include("examples:echoBot")
+include("examples:photoSenderBot")
