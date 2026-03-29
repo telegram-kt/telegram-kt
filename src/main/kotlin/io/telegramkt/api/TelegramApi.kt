@@ -7,6 +7,7 @@ import io.telegramkt.model.file.input.InputFile
 import io.telegramkt.model.keyboard.reply.InlineKeyboardMarkup
 import io.telegramkt.model.keyboard.reply.ReplyMarkup
 import io.telegramkt.model.keyboard.reply.parameters.ReplyParameters
+import io.telegramkt.model.media.input.AlbumableMedia
 import io.telegramkt.model.message.Message
 import io.telegramkt.model.message.MessageId
 import io.telegramkt.model.message.entity.MessageEntity
@@ -427,4 +428,17 @@ interface TelegramApi {
         replyParameters: ReplyParameters? = null,
         replyMarkup: ReplyMarkup? = null,
     ): Message
+
+    suspend fun sendMediaGroup(
+        chatId: ChatId,
+        media: List<AlbumableMedia>,
+        businessConnectionId: String? = null,
+        messageThreadId: Int? = null,
+        directMessagesTopicId: Int? = null,
+        disableNotification: Boolean? = null,
+        protectContent: Boolean? = null,
+        allowPaidBroadcast: Boolean? = null,
+        messageEffectId: String? = null,
+        replyParameters: ReplyParameters? = null,
+    ): List<Message>
 }

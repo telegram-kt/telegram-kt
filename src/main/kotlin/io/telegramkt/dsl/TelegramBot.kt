@@ -32,6 +32,18 @@ class TelegramBot(
         }
     }
 
+    suspend fun dropPendingUpdates() {
+        try {
+            val updates = client.getUpdates(offset = -1, limit = 100, timeout = 0)
+            if (updates.isNotEmpty()) {
+                val lastUpdateId = updates.last().updateId
+                client.getUpdates(offset = lastUpdateId + 1, limit = 1, timeout = 0)
+            }
+        } catch (e: Exception) {
+            println("Error on drop updates: ${e.message}")
+        }
+    }
+
     fun stop() {
         pollingJob?.cancel()
         client.close()

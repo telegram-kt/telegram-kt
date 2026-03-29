@@ -22,6 +22,8 @@ import io.telegramkt.model.file.input.InputFile
 import io.telegramkt.model.keyboard.reply.InlineKeyboardMarkup
 import io.telegramkt.model.keyboard.reply.ReplyMarkup
 import io.telegramkt.model.keyboard.reply.parameters.ReplyParameters
+import io.telegramkt.model.media.input.MediaGroupBuilder
+import io.telegramkt.model.media.input.AlbumableMedia
 import io.telegramkt.model.message.Message
 import io.telegramkt.model.message.MessageId
 import io.telegramkt.model.message.entity.MessageEntity
@@ -548,6 +550,81 @@ class TelegramBotClient(
         parameter("suggested_post_parameters", suggestedPostParameters?.let { json.encodeToString(it) })
         parameter("reply_parameters", replyParameters?.let { json.encodeToString(it) })
         parameter("reply_markup", replyMarkup?.let { json.encodeToString(it) })
+    }
+
+    override suspend fun sendMediaGroup(
+        chatId: ChatId,
+        media: List<AlbumableMedia>,
+        businessConnectionId: String? ,
+        messageThreadId: Int?,
+        directMessagesTopicId: Int?,
+        disableNotification: Boolean?,
+        protectContent: Boolean?,
+        allowPaidBroadcast: Boolean?,
+        messageEffectId: String?,
+        replyParameters: ReplyParameters?,
+    ): List<Message> = call("sendMediaGroup") {
+        parameter("chat_id", chatId.toApiParam())
+        parameter("media", media)
+        parameter("business_connection_id", businessConnectionId)
+        parameter("message_thread_id", messageThreadId)
+        parameter("direct_messages_topic_id", directMessagesTopicId)
+        parameter("disable_notification", disableNotification)
+        parameter("protect_content", protectContent)
+        parameter("allow_paid_broadcast", allowPaidBroadcast)
+        parameter("message_effect_id", messageEffectId)
+        parameter("reply_parameters", replyParameters?.let { json.encodeToString(it) })
+    }
+
+    suspend fun sendMediaGroup(
+        chatId: ChatId,
+        businessConnectionId: String? = null,
+        messageThreadId: Int? = null,
+        directMessagesTopicId: Int? = null,
+        disableNotification: Boolean? = null,
+        protectContent: Boolean? = null,
+        allowPaidBroadcast: Boolean? = null,
+        messageEffectId: String? = null,
+        replyParameters: ReplyParameters? = null,
+        block: MediaGroupBuilder.PhotoVideo.() -> Unit
+    ): List<Message> {
+        val builder = MediaGroupBuilder.PhotoVideo().apply(block)
+        return sendMediaGroup(chatId, builder.media, businessConnectionId, messageThreadId, directMessagesTopicId,
+            disableNotification, protectContent, allowPaidBroadcast, messageEffectId, replyParameters)
+    }
+
+    suspend fun sendDocumentsGroup(
+        chatId: ChatId,
+        businessConnectionId: String? = null,
+        messageThreadId: Int? = null,
+        directMessagesTopicId: Int? = null,
+        disableNotification: Boolean? = null,
+        protectContent: Boolean? = null,
+        allowPaidBroadcast: Boolean? = null,
+        messageEffectId: String? = null,
+        replyParameters: ReplyParameters? = null,
+        block: MediaGroupBuilder.Documents.() -> Unit,
+    ): List<Message> {
+        val builder = MediaGroupBuilder.Documents().apply(block)
+        return sendMediaGroup(chatId, builder.media, businessConnectionId, messageThreadId, directMessagesTopicId,
+            disableNotification, protectContent, allowPaidBroadcast, messageEffectId, replyParameters)
+    }
+
+    suspend fun sendAudioGroup(
+        chatId: ChatId,
+        businessConnectionId: String? = null,
+        messageThreadId: Int? = null,
+        directMessagesTopicId: Int? = null,
+        disableNotification: Boolean? = null,
+        protectContent: Boolean? = null,
+        allowPaidBroadcast: Boolean? = null,
+        messageEffectId: String? = null,
+        replyParameters: ReplyParameters? = null,
+        block: MediaGroupBuilder.Audio.() -> Unit,
+    ): List<Message> {
+        val builder = MediaGroupBuilder.Audio().apply(block)
+        return sendMediaGroup(chatId, builder.media, businessConnectionId, messageThreadId, directMessagesTopicId,
+            disableNotification, protectContent, allowPaidBroadcast, messageEffectId, replyParameters)
     }
 
     fun updatesFlow(

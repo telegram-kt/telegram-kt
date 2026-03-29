@@ -1,10 +1,13 @@
 package io.telegramkt.model.file.input
 
+import io.telegramkt.serialization.InputFileSerializer
 import kotlinx.io.buffered
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
 import kotlinx.io.readByteArray
+import kotlinx.serialization.Serializable
 
+@Serializable(with = InputFileSerializer::class)
 sealed interface InputFile {
     data class StringValue(val value: String) : InputFile
 
