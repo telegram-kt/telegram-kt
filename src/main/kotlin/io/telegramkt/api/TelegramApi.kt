@@ -42,6 +42,8 @@ interface TelegramApi {
         allowedUpdates: List<String>? = null,
     ): List<Update>
 
+    // ==================== MESSAGES. ====================
+
     /**
      * Send text message.
      *
@@ -183,6 +185,8 @@ interface TelegramApi {
         removeCaption: Boolean? = null,
     ): List<MessageId>
 
+    // ==================== CALLBACKS. ====================
+
     /**
      * Get file info and prepare for download.
      *
@@ -206,6 +210,8 @@ interface TelegramApi {
         url: String? = null,
         cacheTime: Int? = null,
     )
+
+    // ==================== FILES. ====================
 
     /**
      * Send photo to chat.
@@ -441,4 +447,99 @@ interface TelegramApi {
         messageEffectId: String? = null,
         replyParameters: ReplyParameters? = null,
     ): List<Message>
+
+    // ==================== LOCATION & VENUES. ====================
+
+    /**
+     * Send point on the map.
+     *
+     * Example:
+     * ```
+     * // Simple location
+     * client.sendLocation(chatId, 55.7558f, 37.6173f)
+     *
+     * // Live location with accuracy
+     * client.sendLocation(chatId, 55.7558f, 37.6173f) {
+     *     horizontalAccuracy = 100f
+     *     livePeriod = 3600  // Updates for 1 hour
+     * }
+     * ```
+     *
+     * @param latitude Latitude (0-180)
+     * @param longitude Longitude (0-180)
+     * @param horizontalAccuracy Radius of uncertainty in meters (0-1500)
+     * @param livePeriod Time for live updates in seconds (60-86400)
+     * @param heading Direction of movement in degrees (1-360)
+     * @param proximityAlertRadius Alert radius in meters (1-100000)
+     */
+    suspend fun sendLocation(
+        chatId: ChatId,
+        latitude: Float,
+        longitude: Float,
+        businessConnectionId: String? = null,
+        messageThreadId: Int? = null,
+        directMessagesTopicId: Int? = null,
+        horizontalAccuracy: Float? = null,
+        livePeriod: Int? = null,
+        heading: Int? = null,
+        proximityAlertRadius: Int? = null,
+        disableNotification: Boolean? = null,
+        protectContent: Boolean? = null,
+        allowPaidBroadcast: Boolean? = null,
+        messageEffectId: String? = null,
+        suggestedPostParameters: SuggestedPostParameters? = null,
+        replyParameters: ReplyParameters? = null,
+        replyMarkup: ReplyMarkup? = null,
+    ): Message
+
+    /**
+     * Send venue (location with info).
+     *
+     * Combines location with title, address and optional provider IDs.
+     *
+     * Example:
+     * ```
+     * // Simple venue
+     * client.sendVenue(chatId, 55.7558f, 37.6173f, "Kremlin", "Moscow, Russia")
+     *
+     * // With Google Places data
+     * client.sendVenue(chatId, 55.7558f, 37.6173f, "Kremlin", "Moscow, Russia") {
+     *     googlePlaceId = "ChIJbQhtR0S3t0kRe0wNZT8iD1g"
+     * }
+     * ```
+     *
+     * @param latitude Venue latitude
+     * @param longitude Venue longitude
+     * @param title Venue name (1-128 chars)
+     * @param address Venue address (1-256 chars)
+     * @param foursquareId Foursquare identifier
+     * @param foursquareType Foursquare type
+     * @param googlePlaceId Google Places identifier
+     * @param googlePlaceType Google Places type
+     */
+    suspend fun sendVenue(
+        chatId: ChatId,
+        latitude: Float,
+        longitude: Float,
+        title: String,
+        address: String,
+        foursquareId: String? = null,
+        foursquareType: String? = null,
+        googlePlaceId: String? = null,
+        googlePlaceType: String? = null,
+        businessConnectionId: String? = null,
+        messageThreadId: Int? = null,
+        directMessagesTopicId: Int? = null,
+        horizontalAccuracy: Float? = null,
+        livePeriod: Int? = null,
+        heading: Int? = null,
+        proximityAlertRadius: Int? = null,
+        disableNotification: Boolean? = null,
+        protectContent: Boolean? = null,
+        allowPaidBroadcast: Boolean? = null,
+        messageEffectId: String? = null,
+        suggestedPostParameters: SuggestedPostParameters? = null,
+        replyParameters: ReplyParameters? = null,
+        replyMarkup: ReplyMarkup? = null,
+    ): Message
 }

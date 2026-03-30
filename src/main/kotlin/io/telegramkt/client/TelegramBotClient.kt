@@ -9,6 +9,7 @@ import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
+import io.ktor.http.parameters
 import io.ktor.serialization.kotlinx.json.json
 import io.telegramkt.api.TelegramApi
 import io.telegramkt.api.TelegramResponse
@@ -18,10 +19,15 @@ import io.telegramkt.exception.TelegramRateLimitException
 import io.telegramkt.json.TelegramJson
 import io.telegramkt.model.ParseMode
 import io.telegramkt.model.chat.ChatId
+import io.telegramkt.model.file.File
 import io.telegramkt.model.file.input.InputFile
 import io.telegramkt.model.keyboard.reply.InlineKeyboardMarkup
 import io.telegramkt.model.keyboard.reply.ReplyMarkup
 import io.telegramkt.model.keyboard.reply.parameters.ReplyParameters
+import io.telegramkt.model.location.Location
+import io.telegramkt.model.location.Venue
+import io.telegramkt.model.location.builder.LocationRequestBuilder
+import io.telegramkt.model.location.builder.VenueRequestBuilder
 import io.telegramkt.model.media.input.MediaGroupBuilder
 import io.telegramkt.model.media.input.AlbumableMedia
 import io.telegramkt.model.message.Message
@@ -247,7 +253,7 @@ class TelegramBotClient(
         parameter("allowed_updates", allowedUpdates?.let { json.encodeToString(it) })
     }
 
-    override suspend fun getFile(fileId: String): io.telegramkt.model.file.File =
+    override suspend fun getFile(fileId: String): File =
         call("getFile") { parameter("file_id", fileId) }
 
     override suspend fun answerCallbackQuery(
@@ -625,6 +631,229 @@ class TelegramBotClient(
         val builder = MediaGroupBuilder.Audio().apply(block)
         return sendMediaGroup(chatId, builder.media, businessConnectionId, messageThreadId, directMessagesTopicId,
             disableNotification, protectContent, allowPaidBroadcast, messageEffectId, replyParameters)
+    }
+
+    // ===== Location methods. =====
+
+    override suspend fun sendLocation(
+        chatId: ChatId,
+        latitude: Float,
+        longitude: Float,
+        businessConnectionId: String?,
+        messageThreadId: Int?,
+        directMessagesTopicId: Int?,
+        horizontalAccuracy: Float?,
+        livePeriod: Int?,
+        heading: Int?,
+        proximityAlertRadius: Int?,
+        disableNotification: Boolean?,
+        protectContent: Boolean?,
+        allowPaidBroadcast: Boolean?,
+        messageEffectId: String?,
+        suggestedPostParameters: SuggestedPostParameters?,
+        replyParameters: ReplyParameters?,
+        replyMarkup: ReplyMarkup?
+    ): Message = call("sendLocation") {
+        parameter("chat_id", chatId.toApiParam())
+        parameter("latitude", latitude)
+        parameter("longitude", longitude)
+        parameter("business_connection_id", businessConnectionId)
+        parameter("message_thread_id", messageThreadId)
+        parameter("direct_messages_topic_id", directMessagesTopicId)
+        parameter("horizontal_accuracy", horizontalAccuracy)
+        parameter("live_period", livePeriod)
+        parameter("disable_notification", disableNotification)
+        parameter("protect_content", protectContent)
+        parameter("allow_paid_broadcast", allowPaidBroadcast)
+        parameter("message_effect_id", messageEffectId)
+        parameter("reply_parameters", replyParameters?.let { json.encodeToString(it) })
+        parameter("suggested_post_parameters", suggestedPostParameters?.let { json.encodeToString(it) })
+        parameter("reply_parameters", replyParameters?.let { json.encodeToString(it) })
+        parameter("reply_markup", replyMarkup?.let { json.encodeToString(it) })
+    }
+
+    /**
+     * Send location using [Location] object.
+     * Delegates to primary method with individual parameters.
+     */
+    suspend fun sendLocation(
+        chatId: ChatId,
+        location: Location,
+        businessConnectionId: String? = null,
+        messageThreadId: Int? = null,
+        directMessagesTopicId: Int? = null,
+        disableNotification: Boolean? = null,
+        protectContent: Boolean? = null,
+        allowPaidBroadcast: Boolean? = null,
+        messageEffectId: String? = null,
+        suggestedPostParameters: SuggestedPostParameters? = null,
+        replyParameters: ReplyParameters? = null,
+        replyMarkup: ReplyMarkup? = null,
+    ): Message = sendLocation(
+        chatId = chatId,
+        latitude = location.latitude,
+        longitude = location.longitude,
+        horizontalAccuracy = location.horizontalAccuracy,
+        livePeriod = location.livePeriod,
+        heading = location.heading,
+        proximityAlertRadius = location.proximityAlertRadius,
+        businessConnectionId = businessConnectionId,
+        messageThreadId = messageThreadId,
+        directMessagesTopicId = directMessagesTopicId,
+        disableNotification = disableNotification,
+        protectContent = protectContent,
+        allowPaidBroadcast = allowPaidBroadcast,
+        messageEffectId = messageEffectId,
+        suggestedPostParameters = suggestedPostParameters,
+        replyParameters = replyParameters,
+        replyMarkup = replyMarkup
+    )
+
+    /**
+     * Send location with DSL builder for optional parameters.
+     * Most convenient for Java-style callers.
+     */
+    suspend fun sendLocation(
+        chatId: ChatId,
+        latitude: Float,
+        longitude: Float,
+        businessConnectionId: String? = null,
+        messageThreadId: Int? = null,
+        directMessagesTopicId: Int? = null,
+        disableNotification: Boolean? = null,
+        protectContent: Boolean? = null,
+        allowPaidBroadcast: Boolean? = null,
+        messageEffectId: String? = null,
+        suggestedPostParameters: SuggestedPostParameters? = null,
+        replyParameters: ReplyParameters? = null,
+        replyMarkup: ReplyMarkup? = null,
+        block: LocationRequestBuilder.() -> Unit = {}
+    ): Message {
+        val builder = LocationRequestBuilder(latitude, longitude).apply(block)
+        return sendLocation(chatId, builder.build(), businessConnectionId, messageThreadId, directMessagesTopicId,
+            disableNotification, protectContent, allowPaidBroadcast, messageEffectId, suggestedPostParameters,
+            replyParameters, replyMarkup)
+    }
+
+    // ===== Venue methods. =====
+
+    override suspend fun sendVenue(
+        chatId: ChatId,
+        latitude: Float,
+        longitude: Float,
+        title: String,
+        address: String,
+        foursquareId: String?,
+        foursquareType: String?,
+        googlePlaceId: String?,
+        googlePlaceType: String?,
+        businessConnectionId: String?,
+        messageThreadId: Int?,
+        directMessagesTopicId: Int?,
+        horizontalAccuracy: Float?,
+        livePeriod: Int?,
+        heading: Int?,
+        proximityAlertRadius: Int?,
+        disableNotification: Boolean?,
+        protectContent: Boolean?,
+        allowPaidBroadcast: Boolean?,
+        messageEffectId: String?,
+        suggestedPostParameters: SuggestedPostParameters?,
+        replyParameters: ReplyParameters?,
+        replyMarkup: ReplyMarkup?
+    ): Message = call("sendVenue") {
+        parameter("chat_id", chatId.toApiParam())
+        parameter("latitude", latitude)
+        parameter("longitude", longitude)
+        parameter("title", title)
+        parameter("address", address)
+        parameter("foursquare_id", foursquareId)
+        parameter("foursquare_type", foursquareType)
+        parameter("google_place_id", googlePlaceId)
+        parameter("google_place_type", googlePlaceType)
+        parameter("business_connection_id", businessConnectionId)
+        parameter("message_thread_id", messageThreadId)
+        parameter("direct_messages_topic_id", directMessagesTopicId)
+        parameter("horizontal_accuracy", horizontalAccuracy)
+        parameter("live_period", livePeriod)
+        parameter("disable_notification", disableNotification)
+        parameter("protect_content", protectContent)
+        parameter("allow_paid_broadcast", allowPaidBroadcast)
+        parameter("message_effect_id", messageEffectId)
+        parameter("reply_parameters", replyParameters?.let { json.encodeToString(it) })
+        parameter("suggested_post_parameters", suggestedPostParameters?.let { json.encodeToString(it) })
+        parameter("reply_parameters", replyParameters?.let { json.encodeToString(it) })
+        parameter("reply_markup", replyMarkup?.let { json.encodeToString(it) })
+    }
+
+    /**
+     * Send venue using [Venue] object.
+     * Delegates to primary method with individual parameters.
+     */
+    suspend fun sendVenue(
+        chatId: ChatId,
+        venue: Venue,
+        businessConnectionId: String? = null,
+        messageThreadId: Int? = null,
+        directMessagesTopicId: Int? = null,
+        disableNotification: Boolean? = null,
+        protectContent: Boolean? = null,
+        allowPaidBroadcast: Boolean? = null,
+        messageEffectId: String? = null,
+        suggestedPostParameters: SuggestedPostParameters? = null,
+        replyParameters: ReplyParameters? = null,
+        replyMarkup: ReplyMarkup? = null,
+    ): Message = sendVenue(
+        chatId = chatId,
+        latitude = venue.location.latitude,
+        longitude = venue.location.longitude,
+        title = venue.title,
+        address = venue.address,
+        foursquareId = venue.foursquareId,
+        foursquareType = venue.foursquareType,
+        googlePlaceId = venue.googlePlaceId,
+        googlePlaceType = venue.googlePlaceType,
+        horizontalAccuracy = venue.location.horizontalAccuracy,
+        livePeriod = venue.location.livePeriod,
+        heading = venue.location.heading,
+        proximityAlertRadius = venue.location.proximityAlertRadius,
+        businessConnectionId = businessConnectionId,
+        messageThreadId = messageThreadId,
+        directMessagesTopicId = directMessagesTopicId,
+        disableNotification = disableNotification,
+        protectContent = protectContent,
+        allowPaidBroadcast = allowPaidBroadcast,
+        messageEffectId = messageEffectId,
+        suggestedPostParameters = suggestedPostParameters,
+        replyParameters = replyParameters,
+        replyMarkup = replyMarkup
+    )
+
+    /**
+     * Send venue using [Location] object with title and address.
+     * Useful when you already have a Location instance.
+     */
+    suspend fun sendVenue(
+        chatId: ChatId,
+        location: Location,
+        title: String,
+        address: String,
+        businessConnectionId: String? = null,
+        messageThreadId: Int? = null,
+        directMessagesTopicId: Int? = null,
+        disableNotification: Boolean? = null,
+        protectContent: Boolean? = null,
+        allowPaidBroadcast: Boolean? = null,
+        messageEffectId: String? = null,
+        suggestedPostParameters: SuggestedPostParameters? = null,
+        replyParameters: ReplyParameters? = null,
+        replyMarkup: ReplyMarkup? = null,
+        block: VenueRequestBuilder.() -> Unit = {}
+    ): Message {
+        val builder = VenueRequestBuilder(location, title, address).apply(block)
+        return sendVenue(chatId, builder.build(), businessConnectionId, messageThreadId, directMessagesTopicId,
+            disableNotification, protectContent, allowPaidBroadcast, messageEffectId, suggestedPostParameters, replyParameters,
+            replyMarkup)
     }
 
     fun updatesFlow(
