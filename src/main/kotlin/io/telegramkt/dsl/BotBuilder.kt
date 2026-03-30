@@ -26,6 +26,38 @@ class BotBuilder(private val token: String) {
         registry.onPhoto(handler)
     }
 
+    fun onLocation(handler: LocationHandler) {
+        registry.onLocation(handler)
+    }
+
+    fun onVenue(handler: VenueHandler) {
+        registry.onVenue(handler)
+    }
+
+    fun onVideo(handler: VideoHandler) {
+        registry.onVideo(handler)
+    }
+
+    fun onVideoNote(handler: VideoNoteHandler) {
+        registry.onVideoNote(handler)
+    }
+
+    fun onAnimation(handler: AnimationHandler) {
+        registry.onAnimation(handler)
+    }
+
+    fun onDocument(handler: DocumentHandler) {
+        registry.onDocument(handler)
+    }
+
+    fun onAudio(handler: AudioHandler) {
+        registry.onAudio(handler)
+    }
+
+    fun onVoice(handler: VoiceHandler) {
+        registry.onVoice(handler)
+    }
+
     fun client(configure: TelegramBotClient.() -> Unit) {
         client = TelegramBotClient(token).apply(configure)
     }

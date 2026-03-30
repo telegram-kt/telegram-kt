@@ -1,7 +1,15 @@
 package io.telegramkt.dsl
 
+import io.telegramkt.model.animation.Animation
+import io.telegramkt.model.audio.Audio
+import io.telegramkt.model.audio.Voice
+import io.telegramkt.model.document.Document
+import io.telegramkt.model.location.Location
+import io.telegramkt.model.location.Venue
 import io.telegramkt.model.photo.PhotoSize
 import io.telegramkt.model.photo.largest
+import io.telegramkt.model.video.Video
+import io.telegramkt.model.video.VideoNote
 
 typealias Handler = suspend BotContext.() -> Unit
 typealias ErrorHandler = suspend (Throwable, BotContext?) -> Unit
@@ -11,12 +19,33 @@ typealias PhotoHandler = suspend BotContext.(photo: PhotoSize, caption: String?)
 typealias MessageHandler = suspend BotContext.(text: String) -> Unit
 typealias CallbackHandler = suspend BotContext.(data: String) -> Unit
 
+typealias LocationHandler = suspend BotContext.(location: Location) -> Unit
+typealias VenueHandler = suspend BotContext.(venue: Venue) -> Unit
+
+typealias VideoHandler = suspend BotContext.(video: Video, caption: String?) -> Unit
+typealias VideoNoteHandler = suspend BotContext.(videoNote: VideoNote) -> Unit
+typealias AnimationHandler = suspend BotContext.(animation: Animation) -> Unit
+
+typealias DocumentHandler = suspend BotContext.(document: Document, caption: String?) -> Unit
+
+typealias AudioHandler = suspend BotContext.(audio: Audio, caption: String?) -> Unit
+typealias VoiceHandler = suspend BotContext.(voice: Voice) -> Unit
+
 class HandlerRegistry {
     private val commands = mutableMapOf<String, CommandHandler>()
     private val callbacks = mutableMapOf<String, CallbackHandler>()
     private var onMessage: MessageHandler? = null
     private var onError: ErrorHandler = { ex, _ -> println("Error: ${ex.message}") }
     private val onPhoto = mutableListOf<PhotoHandler>()
+    private val onLocation = mutableListOf<LocationHandler>()
+    private val onVenue = mutableListOf<VenueHandler>()
+
+    private val onVideo = mutableListOf<VideoHandler>()
+    private val onVideoNote = mutableListOf<VideoNoteHandler>()
+    private val onAnimation = mutableListOf<AnimationHandler>()
+    private val onDocument = mutableListOf<DocumentHandler>()
+    private val onAudio = mutableListOf<AudioHandler>()
+    private val onVoice = mutableListOf<VoiceHandler>()
 
     fun onCommand(command: String, handler: CommandHandler) {
         commands[command.lowercase()] = handler
@@ -36,6 +65,38 @@ class HandlerRegistry {
 
     fun onPhoto(handler: PhotoHandler) {
         onPhoto.add(handler)
+    }
+
+    fun onLocation(handler: LocationHandler) {
+        onLocation.add(handler)
+    }
+
+    fun onVenue(handler: VenueHandler) {
+        onVenue.add(handler)
+    }
+
+    fun onVideoNote(handler: VideoNoteHandler) {
+        onVideoNote.add(handler)
+    }
+
+    fun onAnimation(handler: AnimationHandler) {
+        onAnimation.add(handler)
+    }
+
+    fun onDocument(handler: DocumentHandler) {
+        onDocument.add(handler)
+    }
+
+    fun onAudio(handler: AudioHandler) {
+        onAudio.add(handler)
+    }
+
+    fun onVideo(handler: VideoHandler) {
+        onVideo.add(handler)
+    }
+
+    fun onVoice(handler: VoiceHandler) {
+        onVoice.add(handler)
     }
 
     internal suspend fun handle(ctx: BotContext) {
@@ -71,6 +132,53 @@ class HandlerRegistry {
 
                 ctx.message?.text != null -> {
                     onMessage?.invoke(ctx, ctx.message?.text!!)
+                }
+
+                ctx.message?.location != null -> {
+                    val location = ctx.message!!.location!!
+                    onLocation.forEach { handler ->
+                        handler.invoke(ctx, location)
+                    }
+                }
+
+                ctx.message?.venue != null -> {
+                    val venue = ctx.message!!.venue!!
+                    onVenue.forEach { handler ->
+                        handler.invoke(ctx, venue)
+                    }
+                }
+
+                ctx.message?.video != null -> {
+                    val video = ctx.message?.video!!
+                    val caption = ctx.message?.caption
+                    onVideo.forEach { it(ctx, video, caption) }
+                }
+
+                ctx.message?.videoNote != null -> {
+                    val videoNote = ctx.message?.videoNote!!
+                    onVideoNote.forEach { it(ctx, videoNote) }
+                }
+
+                ctx.message?.animation != null -> {
+                    val animation = ctx.message?.animation!!
+                    onAnimation.forEach { it(ctx, animation) }
+                }
+
+                ctx.message?.document != null -> {
+                    val document = ctx.message?.document!!
+                    val caption = ctx.message?.caption
+                    onDocument.forEach { it(ctx, document, caption) }
+                }
+
+                ctx.message?.audio != null -> {
+                    val audio = ctx.message?.audio!!
+                    val caption = ctx.message?.caption
+                    onAudio.forEach { it(ctx, audio, caption) }
+                }
+
+                ctx.message?.voice != null -> {
+                    val voice = ctx.message?.voice!!
+                    onVoice.forEach { it(ctx, voice) }
                 }
             }
         } catch (ex: Exception) {

@@ -55,8 +55,8 @@ class TelegramBotClient(
         expectSuccess = true
         engine {
             endpoint {
-                connectTimeout = timeout.inWholeMilliseconds.toLong()
-                requestTimeout = timeout.inWholeMilliseconds.toLong()
+                connectTimeout = timeout.inWholeMilliseconds
+                requestTimeout = timeout.inWholeMilliseconds
             }
         }
         install(ContentNegotiation) {
