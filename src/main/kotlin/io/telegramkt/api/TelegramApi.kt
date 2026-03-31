@@ -2,6 +2,7 @@ package io.telegramkt.api
 
 import io.telegramkt.model.ParseMode
 import io.telegramkt.model.chat.ChatId
+import io.telegramkt.model.checklist.input.InputChecklist
 import io.telegramkt.model.file.File
 import io.telegramkt.model.file.input.InputFile
 import io.telegramkt.model.keyboard.reply.InlineKeyboardMarkup
@@ -642,6 +643,36 @@ interface TelegramApi {
         openPeriod: Int? = null,
         closeDate: Instant? = null,
         isClosed: Boolean? = null,
+        disableNotification: Boolean? = null,
+        protectContent: Boolean? = null,
+        allowPaidBroadcast: Boolean? = null,
+        messageEffectId: String? = null,
+        suggestedPostParameters: SuggestedPostParameters? = null,
+        replyParameters: ReplyParameters? = null,
+        replyMarkup: ReplyMarkup? = null,
+    ): Message
+
+    // ==================== CheckList. ====================
+
+    suspend fun sendChecklist(
+        chatId: ChatId,
+        checklist: InputChecklist,
+        businessConnectionId: String,
+        disableNotification: Boolean? = null,
+        protectContent: Boolean? = null,
+        messageEffectId: String? = null,
+        replyParameters: ReplyParameters? = null,
+        replyMarkup: ReplyMarkup? = null,
+    ): Message
+
+    // ==================== Dice. ====================
+
+    suspend fun sendDice(
+        chatId: ChatId,
+        businessConnectionId: String? = null,
+        messageThreadId: Int? = null,
+        directMessagesTopicId: Int? = null,
+        emoji: String? = null,
         disableNotification: Boolean? = null,
         protectContent: Boolean? = null,
         allowPaidBroadcast: Boolean? = null,

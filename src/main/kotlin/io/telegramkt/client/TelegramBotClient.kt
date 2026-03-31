@@ -9,7 +9,6 @@ import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
-import io.ktor.http.parameters
 import io.ktor.serialization.kotlinx.json.json
 import io.telegramkt.api.TelegramApi
 import io.telegramkt.api.TelegramResponse
@@ -19,6 +18,7 @@ import io.telegramkt.exception.TelegramRateLimitException
 import io.telegramkt.json.TelegramJson
 import io.telegramkt.model.ParseMode
 import io.telegramkt.model.chat.ChatId
+import io.telegramkt.model.checklist.input.InputChecklist
 import io.telegramkt.model.contact.Contact
 import io.telegramkt.model.contact.ContactRequestBuilder
 import io.telegramkt.model.file.File
@@ -45,7 +45,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.encodeToJsonElement
 import java.lang.AutoCloseable
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
@@ -1056,6 +1055,71 @@ class TelegramBotClient(
         protectContent, allowPaidBroadcast, messageEffectId, suggestedPostParameters,
         replyParameters, replyMarkup
     )
+
+    // ===== Check list methods. =====
+
+    override suspend fun sendChecklist(
+        chatId: ChatId,
+        checklist: InputChecklist,
+        businessConnectionId: String,
+        disableNotification: Boolean?,
+        protectContent: Boolean?,
+        messageEffectId: String?,
+        replyParameters: ReplyParameters?,
+        replyMarkup: ReplyMarkup?
+    ): Message = call("sendChecklist") {
+        parameter("chat_id", chatId.toApiParam())
+        parameter("checklist", checklist)
+        parameter("business_connection_id", businessConnectionId)
+        parameter("disable_notification", disableNotification)
+        parameter("protect_content", protectContent)
+        parameter("message_effect_id", messageEffectId)
+        parameter("reply_parameters", replyParameters)
+        parameter("reply_markup", replyMarkup)
+    }
+
+    // ===== Dice methods. =====
+
+    override suspend fun sendDice(
+        chatId: ChatId,
+        businessConnectionId: String?,
+        messageThreadId: Int?,
+        directMessagesTopicId: Int?,
+        emoji: String?,
+        disableNotification: Boolean?,
+        protectContent: Boolean?,
+        allowPaidBroadcast: Boolean?,
+        messageEffectId: String?,
+        suggestedPostParameters: SuggestedPostParameters?,
+        replyParameters: ReplyParameters?,
+        replyMarkup: ReplyMarkup?
+    ): Message {
+        if (emoji != null && emoji.isNotEmpty()) {
+            require(emoji in listOf(
+                "🎲",
+                "🎯",
+                "🏀",
+                "⚽",
+                "🎳",
+                "🎰"
+            )) { "This emoji is not allowed." }
+        }
+
+        return call("sendDice") {
+            parameter("chat_id", chatId.toApiParam())
+            parameter("business_connection_id", businessConnectionId)
+            parameter("message_thread_id", messageThreadId)
+            parameter("direct_messages_topic_id", directMessagesTopicId)
+            parameter("emoji", emoji)
+            parameter("disable_notification", disableNotification)
+            parameter("protect_content", protectContent)
+            parameter("allow_paid_broadcast", allowPaidBroadcast)
+            parameter("message_effect_id", messageEffectId)
+            parameter("suggested_post_parameters", suggestedPostParameters)
+            parameter("reply_parameters", replyParameters)
+            parameter("reply_markup", replyMarkup)
+        }
+    }
 
     fun updatesFlow(
         limit: Int = 100,

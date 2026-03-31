@@ -13,6 +13,7 @@ import io.telegramkt.model.chat.video.VideoChatEnded
 import io.telegramkt.model.chat.video.VideoChatParticipantsInvited
 import io.telegramkt.model.chat.video.VideoChatScheduled
 import io.telegramkt.model.chat.video.VideoChatStarted
+import io.telegramkt.model.checklist.Checklist
 import io.telegramkt.model.document.Document
 import io.telegramkt.model.forum.ForumTopicClosed
 import io.telegramkt.model.forum.ForumTopicCreated
@@ -82,6 +83,7 @@ data class Message(
     @SerialName("caption") val caption: String? = null,
     @SerialName("caption_entities") val captionEntities: List<MessageEntity>? = null,
     @SerialName("has_media_spoiler") val hasMediaSpoiler: Boolean? = null,
+    @SerialName("checklist") val checklist: Checklist? = null,
     @SerialName("contact") val contact: Contact? = null,
     @SerialName("dice") val dice: Dice? = null,
     @SerialName("game") val game: Game? = null,

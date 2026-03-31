@@ -4,8 +4,10 @@ import com.sun.jndi.ldap.pool.Pool
 import io.telegramkt.model.animation.Animation
 import io.telegramkt.model.audio.Audio
 import io.telegramkt.model.audio.Voice
+import io.telegramkt.model.checklist.Checklist
 import io.telegramkt.model.contact.Contact
 import io.telegramkt.model.document.Document
+import io.telegramkt.model.game.Dice
 import io.telegramkt.model.location.Location
 import io.telegramkt.model.location.Venue
 import io.telegramkt.model.photo.PhotoSize
@@ -36,6 +38,9 @@ typealias VoiceHandler = suspend BotContext.(voice: Voice) -> Unit
 typealias ContactHandler = suspend BotContext.(contact: Contact) -> Unit
 typealias PollHandler = suspend BotContext.(poll: Pool) -> Unit
 
+typealias ChecklistHandler = suspend BotContext.(checklist: Checklist) -> Unit
+typealias DiceHandler = suspend BotContext.(dice: Dice) -> Unit
+
 class HandlerRegistry {
     private val commands = mutableMapOf<String, CommandHandler>()
     private val callbacks = mutableMapOf<String, CallbackHandler>()
@@ -53,6 +58,8 @@ class HandlerRegistry {
     private val onVoice = mutableListOf<VoiceHandler>()
     private val onContact = mutableListOf<ContactHandler>()
     private val onPoll = mutableListOf<PollHandler>()
+    private val onChecklist = mutableListOf<ChecklistHandler>()
+    private val onDice = mutableListOf<DiceHandler>()
 
     fun onCommand(command: String, handler: CommandHandler) {
         commands[command.lowercase()] = handler
@@ -112,6 +119,14 @@ class HandlerRegistry {
 
     fun onPoll(handler: PollHandler) {
         onPoll.add(handler)
+    }
+
+    fun onChecklist(handler: ChecklistHandler) {
+        onChecklist.add(handler)
+    }
+
+    fun onDice(handler: DiceHandler) {
+        onDice.add(handler)
     }
 
     internal suspend fun handle(ctx: BotContext) {
@@ -199,6 +214,16 @@ class HandlerRegistry {
                 ctx.message?.contact != null -> {
                     val contact = ctx.message?.contact!!
                     onContact.forEach { it(ctx, contact) }
+                }
+
+                ctx.message?.checklist != null -> {
+                    val checklist = ctx.message?.checklist!!
+                    onChecklist.forEach { it(ctx, checklist) }
+                }
+
+                ctx.message?.dice != null -> {
+                    val dice = ctx.message?.dice!!
+                    onDice.forEach { it(ctx, dice) }
                 }
             }
         } catch (ex: Exception) {

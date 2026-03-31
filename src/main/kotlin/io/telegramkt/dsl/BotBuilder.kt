@@ -66,6 +66,14 @@ class BotBuilder(private val token: String) {
         registry.onPoll(handler)
     }
 
+    fun onChecklist(handler: ChecklistHandler) {
+        registry.onChecklist(handler)
+    }
+
+    fun onDice(handler: DiceHandler) {
+        registry.onDice(handler)
+    }
+
     fun client(configure: TelegramBotClient.() -> Unit) {
         client = TelegramBotClient(token).apply(configure)
     }
