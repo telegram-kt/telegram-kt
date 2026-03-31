@@ -1,4 +1,4 @@
-package io.telegramkt.model
+package io.telegramkt.model.contact
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable

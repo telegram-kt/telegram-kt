@@ -1,6 +1,6 @@
 package io.telegramkt.model.message
 
-import io.telegramkt.model.Contact
+import io.telegramkt.model.contact.Contact
 import io.telegramkt.model.LinkPreviewOptions
 import io.telegramkt.model.animation.Animation
 import io.telegramkt.model.audio.Audio

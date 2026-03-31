@@ -19,6 +19,8 @@ import io.telegramkt.exception.TelegramRateLimitException
 import io.telegramkt.json.TelegramJson
 import io.telegramkt.model.ParseMode
 import io.telegramkt.model.chat.ChatId
+import io.telegramkt.model.contact.Contact
+import io.telegramkt.model.contact.ContactRequestBuilder
 import io.telegramkt.model.file.File
 import io.telegramkt.model.file.input.InputFile
 import io.telegramkt.model.keyboard.reply.InlineKeyboardMarkup
@@ -33,6 +35,9 @@ import io.telegramkt.model.media.input.AlbumableMedia
 import io.telegramkt.model.message.Message
 import io.telegramkt.model.message.MessageId
 import io.telegramkt.model.message.entity.MessageEntity
+import io.telegramkt.model.poll.PollType
+import io.telegramkt.model.poll.input.InputPollOption
+import io.telegramkt.model.poll.input.PollOptionsBuilder
 import io.telegramkt.model.suggested.SuggestedPostParameters
 import io.telegramkt.model.update.Update
 import io.telegramkt.model.user.User
@@ -40,9 +45,11 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.encodeToJsonElement
 import java.lang.AutoCloseable
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Instant
 
 class TelegramBotClient(
     private val token: String,
@@ -86,7 +93,7 @@ class TelegramBotClient(
     ): Message = call("sendMessage") {
         parameter("chat_id", chatId.toApiParam())
         parameter("text", text)
-        parameter("parse_mode", parseMode?.name)
+        parameter("parse_mode", parseMode)
         parameter("entities", entities?.let { json.encodeToString(it) })
         parameter("disable_web_page_preview", disableWebPagePreview)
         parameter("disable_notification", disableNotification)
@@ -113,7 +120,7 @@ class TelegramBotClient(
         parameter("message_id", messageId)
         parameter("inline_message_id", inlineMessageId)
         parameter("text", text)
-        parameter("parse_mode", parseMode?.name)
+        parameter("parse_mode", parseMode)
         parameter("entities", entities?.let { json.encodeToString(it) })
         parameter("disable_web_page_preview", disableWebPagePreview)
         parameter("reply_markup", replyMarkup?.let { json.encodeToString(it) })
@@ -210,7 +217,7 @@ class TelegramBotClient(
         parameter("direct_messages_topic_id", directMessagesTopicId)
         parameter("video_start_timestamp", videoStartTimestamp)
         parameter("caption", caption)
-        parameter("parse_mode", parseMode?.name)
+        parameter("parse_mode", parseMode)
         parameter("caption_entities", captionEntities?.let { json.encodeToString(it) })
         parameter("show_caption_above_media", showCaptionAboveMedia)
         parameter("disable_notification", disableNotification)
@@ -297,7 +304,7 @@ class TelegramBotClient(
         parameter("message_thread_id", messageThreadId)
         parameter("direct_messages_topic_id", directMessagesTopicId)
         parameter("caption", caption)
-        parameter("parse_mode", parseMode?.name)
+        parameter("parse_mode", parseMode)
         parameter("caption_entities", captionEntities?.let { json.encodeToString(it) })
         parameter("show_caption_above_media", showCaptionAboveMedia)
         parameter("has_spoiler", hasSpoiler)
@@ -337,7 +344,7 @@ class TelegramBotClient(
         parameter("message_thread_id", messageThreadId)
         parameter("direct_messages_topic_id", directMessagesTopicId)
         parameter("caption", caption)
-        parameter("parse_mode", parseMode?.name)
+        parameter("parse_mode", parseMode)
         parameter("caption_entities", captionEntities?.let { json.encodeToString(it) })
         parameter("duration", duration)
         parameter("performer", performer)
@@ -376,7 +383,7 @@ class TelegramBotClient(
         parameter("message_thread_id", messageThreadId)
         parameter("direct_messages_topic_id", directMessagesTopicId)
         parameter("caption", caption)
-        parameter("parse_mode", parseMode?.name)
+        parameter("parse_mode", parseMode)
         parameter("caption_entities", captionEntities?.let { json.encodeToString(it) })
         parameter("duration", duration)
         parameter("disable_notification", disableNotification)
@@ -414,7 +421,7 @@ class TelegramBotClient(
         parameter("direct_messages_topic_id", directMessagesTopicId)
         parameter("thumbnail", thumbnail)
         parameter("caption", caption)
-        parameter("parse_mode", parseMode?.name)
+        parameter("parse_mode", parseMode)
         parameter("caption_entities", captionEntities?.let { json.encodeToString(it) })
         parameter("disable_content_type_detection", disableContentTypeDetection)
         parameter("disable_notification", disableNotification)
@@ -464,7 +471,7 @@ class TelegramBotClient(
         parameter("cover", cover)
         parameter("start_timestamp", startTimestamp)
         parameter("caption", caption)
-        parameter("parse_mode", parseMode?.name)
+        parameter("parse_mode", parseMode)
         parameter("caption_entities", captionEntities?.let { json.encodeToString(it) })
         parameter("show_caption_above_media", showCaptionAboveMedia)
         parameter("has_spoiler", hasSpoiler)
@@ -545,7 +552,7 @@ class TelegramBotClient(
         parameter("height", height)
         parameter("thumbnail", thumbnail)
         parameter("caption", caption)
-        parameter("parse_mode", parseMode?.name)
+        parameter("parse_mode", parseMode)
         parameter("caption_entities", captionEntities?.let { json.encodeToString(it) })
         parameter("show_caption_above_media", showCaptionAboveMedia)
         parameter("has_spoiler", hasSpoiler)
@@ -666,7 +673,6 @@ class TelegramBotClient(
         parameter("protect_content", protectContent)
         parameter("allow_paid_broadcast", allowPaidBroadcast)
         parameter("message_effect_id", messageEffectId)
-        parameter("reply_parameters", replyParameters?.let { json.encodeToString(it) })
         parameter("suggested_post_parameters", suggestedPostParameters?.let { json.encodeToString(it) })
         parameter("reply_parameters", replyParameters?.let { json.encodeToString(it) })
         parameter("reply_markup", replyMarkup?.let { json.encodeToString(it) })
@@ -780,7 +786,6 @@ class TelegramBotClient(
         parameter("protect_content", protectContent)
         parameter("allow_paid_broadcast", allowPaidBroadcast)
         parameter("message_effect_id", messageEffectId)
-        parameter("reply_parameters", replyParameters?.let { json.encodeToString(it) })
         parameter("suggested_post_parameters", suggestedPostParameters?.let { json.encodeToString(it) })
         parameter("reply_parameters", replyParameters?.let { json.encodeToString(it) })
         parameter("reply_markup", replyMarkup?.let { json.encodeToString(it) })
@@ -855,6 +860,202 @@ class TelegramBotClient(
             disableNotification, protectContent, allowPaidBroadcast, messageEffectId, suggestedPostParameters, replyParameters,
             replyMarkup)
     }
+
+    // ===== Contact methods. =====
+    override suspend fun sendContact(
+        chatId: ChatId,
+        phoneNumber: String,
+        firstName: String,
+        lastName: String?,
+        vCard: String?,
+        businessConnectionId: String?,
+        messageThreadId: Int?,
+        directMessagesTopicId: Int?,
+        disableNotification: Boolean?,
+        protectContent: Boolean?,
+        allowPaidBroadcast: Boolean?,
+        messageEffectId: String?,
+        suggestedPostParameters: SuggestedPostParameters?,
+        replyParameters: ReplyParameters?,
+        replyMarkup: ReplyMarkup?
+    ): Message = call("sendContact") {
+        parameter("chat_id", chatId.toApiParam())
+        parameter("phone_number", phoneNumber)
+        parameter("first_name", firstName)
+        parameter("last_name", lastName)
+        parameter("vcard", vCard)
+        parameter("business_connection_id", businessConnectionId)
+        parameter("message_thread_id", messageThreadId)
+        parameter("direct_messages_topic_id", directMessagesTopicId)
+        parameter("disable_notification", disableNotification)
+        parameter("protect_content", protectContent)
+        parameter("allow_paid_broadcast", allowPaidBroadcast)
+        parameter("message_effect_id", messageEffectId)
+        parameter("suggested_post_parameters", suggestedPostParameters?.let { json.encodeToString(it) })
+        parameter("reply_parameters", replyParameters?.let { json.encodeToString(it) })
+        parameter("reply_markup", replyMarkup?.let { json.encodeToString(it) })
+    }
+
+    suspend fun sendContact(
+        chatId: ChatId,
+        contact: Contact,
+        businessConnectionId: String? = null,
+        messageThreadId: Int? = null,
+        directMessagesTopicId: Int? = null,
+        disableNotification: Boolean? = null,
+        protectContent: Boolean? = null,
+        allowPaidBroadcast: Boolean? = null,
+        messageEffectId: String? = null,
+        suggestedPostParameters: SuggestedPostParameters? = null,
+        replyParameters: ReplyParameters? = null,
+        replyMarkup: ReplyMarkup? = null
+    ): Message = sendContact(chatId, contact.phoneNumber, contact.firstName, contact.lastName, contact.vCard,
+        businessConnectionId, messageThreadId, directMessagesTopicId, disableNotification, protectContent,
+        allowPaidBroadcast, messageEffectId, suggestedPostParameters, replyParameters, replyMarkup)
+
+    /**
+     * Send contact with DSL builder for options.
+     *
+     * Example:
+     * ```
+     * client.sendContact(chatId, "+1-555-123-4567", "John") {
+     *     lastName = "Doe"
+     * }
+     * ```
+     */
+    suspend fun sendContact(
+        chatId: ChatId,
+        phoneNumber: String,
+        firstName: String,
+        businessConnectionId: String? = null,
+        messageThreadId: Int? = null,
+        directMessagesTopicId: Int? = null,
+        disableNotification: Boolean? = null,
+        protectContent: Boolean? = null,
+        allowPaidBroadcast: Boolean? = null,
+        messageEffectId: String? = null,
+        suggestedPostParameters: SuggestedPostParameters? = null,
+        replyParameters: ReplyParameters? = null,
+        replyMarkup: ReplyMarkup? = null,
+        block: ContactRequestBuilder.() -> Unit = {}
+    ): Message {
+        val builder = ContactRequestBuilder(phoneNumber, firstName).apply(block)
+        return sendContact(chatId, builder.build(), businessConnectionId, messageThreadId, directMessagesTopicId,
+            disableNotification, protectContent, allowPaidBroadcast, messageEffectId, suggestedPostParameters,
+            replyParameters, replyMarkup)
+    }
+
+    // ===== Poll methods. =====
+
+
+    /**
+     * Send poll with DSL builder for options.
+     *
+     * Example:
+     * ```
+     * client.sendPoll(chatId, "Best language?") {
+     *     answer("Kotlin")
+     *     answer("Rust")
+     *     answerHtml("<b>Java</b>")
+     * }
+     * ```
+     */
+    override suspend fun sendPoll(
+        chatId: ChatId,
+        question: String,
+        options: List<InputPollOption>,
+        businessConnectionId: String?,
+        messageThreadId: Int?,
+        questionParseMode: ParseMode?,
+        questionEntities: List<MessageEntity>?,
+        isAnonymous: Boolean?,
+        type: PollType?,
+        allowsMultipleAnswers: Boolean?,
+        correctOptionId: Int?,
+        explanation: String?,
+        explanationParseMode: ParseMode?,
+        explanationEntities: List<MessageEntity>?,
+        openPeriod: Int?,
+        closeDate: Instant?,
+        isClosed: Boolean?,
+        disableNotification: Boolean?,
+        protectContent: Boolean?,
+        allowPaidBroadcast: Boolean?,
+        messageEffectId: String?,
+        suggestedPostParameters: SuggestedPostParameters?,
+        replyParameters: ReplyParameters?,
+        replyMarkup: ReplyMarkup?
+    ): Message {
+        require(question.length in 1..300) { "The question must be between 1 and 300 characters" }
+        require(options.size in 2..10) { "The survey should include between 2 and 10 answer options" }
+        require(options.all { it.text.isNotEmpty() && it.text.length <= 100 }) {
+            "Option text cannot be empty or longer than 100 characters"
+        }
+        require(options.map { it.text }.distinct().size == options.size) {
+            "Answers should not be repeated"
+        }
+
+        return call("sendPoll") {
+            parameter("chat_id", chatId.toApiParam())
+            parameter("question", question)
+            parameter("options", json.encodeToString(options))
+            parameter("business_connection_id", businessConnectionId)
+            parameter("message_thread_id", messageThreadId)
+            parameter("question_parse_mode", questionParseMode)
+            parameter("question_entities", questionEntities)
+            parameter("is_anonymous", isAnonymous)
+            parameter("type", type)
+            parameter("allows_multiple_answers", allowsMultipleAnswers)
+            parameter("correct_option_id", correctOptionId)
+            parameter("explanation", explanation)
+            parameter("explanation_parse_mode", explanationParseMode)
+            parameter("explanation_entities", explanationEntities)
+            parameter("open_period", openPeriod)
+            parameter("close_date", closeDate)
+            parameter("is_closed", isClosed)
+            parameter("disable_notification", disableNotification)
+            parameter("protect_content", protectContent)
+            parameter("allow_paid_broadcast", allowPaidBroadcast)
+            parameter("message_effect_id", messageEffectId)
+            parameter("reply_parameters", replyParameters)
+            parameter("suggested_post_parameters", suggestedPostParameters)
+            parameter("reply_markup", replyMarkup)
+        }
+    }
+
+    suspend fun sendPoll(
+        chatId: ChatId,
+        question: String,
+        businessConnectionId: String? = null,
+        messageThreadId: Int? = null,
+        questionParseMode: ParseMode? = null,
+        questionEntities: List<MessageEntity>? = null,
+        isAnonymous: Boolean? = null,
+        type: PollType? = null,
+        allowsMultipleAnswers: Boolean? = null,
+        correctOptionId: Int? = null,
+        explanation: String? = null,
+        explanationParseMode: ParseMode? = null,
+        explanationEntities: List<MessageEntity>? = null,
+        openPeriod: Int? = null,
+        closeDate: Instant? = null,
+        isClosed: Boolean? = null,
+        disableNotification: Boolean? = null,
+        protectContent: Boolean? = null,
+        allowPaidBroadcast: Boolean? = null,
+        messageEffectId: String? = null,
+        suggestedPostParameters: SuggestedPostParameters? = null,
+        replyParameters: ReplyParameters? = null,
+        replyMarkup: ReplyMarkup? = null,
+        block: PollOptionsBuilder.() -> Unit
+    ): Message = sendPoll(
+        chatId, question, PollOptionsBuilder.build(block), businessConnectionId,
+        messageThreadId, questionParseMode, questionEntities, isAnonymous, type,
+        allowsMultipleAnswers, correctOptionId, explanation, explanationParseMode,
+        explanationEntities, openPeriod, closeDate, isClosed, disableNotification,
+        protectContent, allowPaidBroadcast, messageEffectId, suggestedPostParameters,
+        replyParameters, replyMarkup
+    )
 
     fun updatesFlow(
         limit: Int = 100,

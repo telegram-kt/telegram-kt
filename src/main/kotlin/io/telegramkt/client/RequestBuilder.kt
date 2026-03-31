@@ -5,6 +5,7 @@ import io.ktor.client.request.forms.MultiPartFormDataContent
 import io.ktor.client.request.forms.formData
 import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
+import io.telegramkt.model.ParseMode
 import io.telegramkt.model.file.input.InputFile
 import io.telegramkt.model.media.input.AlbumableMedia
 import io.telegramkt.model.media.input.InputMediaAudio
@@ -18,6 +19,7 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.encodeToJsonElement
 import kotlin.random.Random
+import kotlin.time.Instant
 
 internal fun Map<String, Any?>.hasBinaryFiles(): Boolean =
     values.any { value ->
@@ -42,16 +44,18 @@ internal fun Json.buildJsonBody(params: Map<String, Any?>): JsonObject =
                 is Boolean -> JsonPrimitive(value)
                 is InputFile.StringValue -> JsonPrimitive(value.value)
                 is List<*> -> {
-                    val element = when {
+                    when {
                         value.filterIsInstance<AlbumableMedia>().isNotEmpty() ->
                             encodeToJsonElement(value.filterIsInstance<AlbumableMedia>())
                         value.filterIsInstance<InputPaidMedia>().isNotEmpty() ->
                             encodeToJsonElement(value.filterIsInstance<InputPaidMedia>())
                         else -> encodeToJsonElement(value.filterIsInstance<String>())
                     }
-                    put(key, element)
-                    return@buildJsonObject
                 }
+                is Enum<*> -> {
+                    encodeToJsonElement(value.toString().lowercase())
+                }
+                is Instant -> JsonPrimitive(value.epochSeconds)
                 else -> encodeToJsonElement(value)
             }
             put(key, element)

@@ -58,6 +58,14 @@ class BotBuilder(private val token: String) {
         registry.onVoice(handler)
     }
 
+    fun onContact(handler: ContactHandler) {
+        registry.onContact(handler)
+    }
+
+    fun onPoll(handler: PollHandler) {
+        registry.onPoll(handler)
+    }
+
     fun client(configure: TelegramBotClient.() -> Unit) {
         client = TelegramBotClient(token).apply(configure)
     }

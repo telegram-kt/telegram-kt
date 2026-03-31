@@ -4,7 +4,6 @@ import io.telegramkt.model.ParseMode
 import io.telegramkt.model.file.input.InputFile
 import io.telegramkt.model.media.input.InputMediaPhoto
 import io.telegramkt.model.message.entity.MessageEntity
-import kotlinx.serialization.SerialName
 
 class InputMediaPhotoBuilder(private val file: InputFile) {
     val caption: String? = null

@@ -11,9 +11,12 @@ import io.telegramkt.model.media.input.AlbumableMedia
 import io.telegramkt.model.message.Message
 import io.telegramkt.model.message.MessageId
 import io.telegramkt.model.message.entity.MessageEntity
+import io.telegramkt.model.poll.PollType
+import io.telegramkt.model.poll.input.InputPollOption
 import io.telegramkt.model.suggested.SuggestedPostParameters
 import io.telegramkt.model.update.Update
 import io.telegramkt.model.user.User
+import kotlin.time.Instant
 
 /**
  * Telegram Bot API client interface.
@@ -534,6 +537,111 @@ interface TelegramApi {
         livePeriod: Int? = null,
         heading: Int? = null,
         proximityAlertRadius: Int? = null,
+        disableNotification: Boolean? = null,
+        protectContent: Boolean? = null,
+        allowPaidBroadcast: Boolean? = null,
+        messageEffectId: String? = null,
+        suggestedPostParameters: SuggestedPostParameters? = null,
+        replyParameters: ReplyParameters? = null,
+        replyMarkup: ReplyMarkup? = null,
+    ): Message
+
+    // ==================== CONTACTS. ====================
+
+    /**
+     * Send phone contact.
+     *
+     * Example:
+     * ```
+     * client.sendContact(
+     *     chatId = chatId,
+     *     phoneNumber = "+1-555-123-4567",
+     *     firstName = "John",
+     *     lastName = "Doe"
+     * )
+     * ```
+     *
+     * @param phoneNumber Contact's phone number
+     * @param firstName Contact's first name
+     * @param lastName Contact's last name
+     * @param vCard Additional data about the contact in vCard format (0-2048 bytes)
+     */
+    suspend fun sendContact(
+        chatId: ChatId,
+        phoneNumber: String,
+        firstName: String,
+        lastName: String? = null,
+        vCard: String? = null,
+        businessConnectionId: String? = null,
+        messageThreadId: Int? = null,
+        directMessagesTopicId: Int? = null,
+        disableNotification: Boolean? = null,
+        protectContent: Boolean? = null,
+        allowPaidBroadcast: Boolean? = null,
+        messageEffectId: String? = null,
+        suggestedPostParameters: SuggestedPostParameters? = null,
+        replyParameters: ReplyParameters? = null,
+        replyMarkup: ReplyMarkup? = null,
+    ): Message
+
+    // ==================== POOL. ====================
+
+    /**
+     * Send native poll.
+     *
+     * Example:
+     * ```
+     * // Simple poll
+     * client.sendPoll(chatId, "Favorite color?") {
+     *     answer("Red")
+     *     answer("Green")
+     *     answer("Blue")
+     * }
+     *
+     * // Quiz with correct answer
+     * client.sendPoll(
+     *     chatId = chatId,
+     *     question = "2 + 2 = ?",
+     *     options = listOf(
+     *         InputPollOption("3"),
+     *         InputPollOption("4"),
+     *         InputPollOption("5")
+     *     ),
+     *     type = PollType.QUIZ,
+     *     correctOptionId = 1,
+     *     explanation = "Basic math"
+     * )
+     * ```
+     *
+     * @param question Poll question (1-300 chars)
+     * @param options List of 2-10 answer options
+     * @param isAnonymous True if poll is anonymous
+     * @param type Poll type: REGULAR (default) or QUIZ
+     * @param allowsMultipleAnswers True if multiple answers allowed (regular only)
+     * @param correctOptionId 0-based index of correct answer (quiz only)
+     * @param explanation Text shown when user selects wrong answer (quiz only, 0-200 chars)
+     * @param openPeriod Time in seconds before poll auto-closes (5-600)
+     * @param closeDate Point in time when poll will auto-close
+     * @param isClosed True to immediately close the poll
+     */
+    suspend fun sendPoll(
+        chatId: ChatId,
+        question: String,
+        options: List<InputPollOption>,
+        businessConnectionId: String? = null,
+        messageThreadId: Int? = null,
+        questionParseMode: ParseMode? = null,
+        questionEntities: List<MessageEntity>? = null,
+        isAnonymous: Boolean? = null,
+        type: PollType? = null,
+        allowsMultipleAnswers: Boolean? = null,
+        correctOptionId: Int? = null,
+        explanation: String? = null,
+        explanationParseMode: ParseMode? = null,
+        explanationEntities: List<MessageEntity>? = null,
+        openPeriod: Int? = null,
+        closeDate: Instant? = null,
+        isClosed: Boolean? = null,
         disableNotification: Boolean? = null,
         protectContent: Boolean? = null,
         allowPaidBroadcast: Boolean? = null,
