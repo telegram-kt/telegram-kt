@@ -2,6 +2,7 @@ package io.telegramkt.api
 
 import io.telegramkt.model.ParseMode
 import io.telegramkt.model.chat.ChatId
+import io.telegramkt.model.chat.action.ChatAction
 import io.telegramkt.model.checklist.input.InputChecklist
 import io.telegramkt.model.file.File
 import io.telegramkt.model.file.input.InputFile
@@ -14,6 +15,7 @@ import io.telegramkt.model.message.MessageId
 import io.telegramkt.model.message.entity.MessageEntity
 import io.telegramkt.model.poll.PollType
 import io.telegramkt.model.poll.input.InputPollOption
+import io.telegramkt.model.reaction.ReactionType
 import io.telegramkt.model.suggested.SuggestedPostParameters
 import io.telegramkt.model.update.Update
 import io.telegramkt.model.user.User
@@ -74,6 +76,15 @@ interface TelegramApi {
         businessConnectionId: String? = null,
         messageEffectId: String? = null,
     ): Message
+
+    suspend fun sendMessageDraft(
+        chatId: Int,
+        draftId: Int,
+        text: String,
+        messageThreadId: Int? = null,
+        parseMode: ParseMode? = null,
+        entities: List<MessageEntity>? = null,
+    ): Boolean
 
     /**
      * Edit text of existing message.
@@ -681,4 +692,22 @@ interface TelegramApi {
         replyParameters: ReplyParameters? = null,
         replyMarkup: ReplyMarkup? = null,
     ): Message
+
+    // ==================== Chat Action. ====================
+
+    suspend fun sendChatAction(
+        chatId: ChatId,
+        action: ChatAction,
+        businessConnectionId: String? = null,
+        messageThreadId: Int? = null,
+    ): Boolean
+
+    // ==================== Reactions. ====================
+
+    suspend fun setMessageReaction(
+        chatId: ChatId,
+        messageId: Int,
+        reaction: List<ReactionType>,
+        isBig: Boolean? = null,
+    ): Boolean
 }

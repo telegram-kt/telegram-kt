@@ -18,6 +18,7 @@ import io.telegramkt.exception.TelegramRateLimitException
 import io.telegramkt.json.TelegramJson
 import io.telegramkt.model.ParseMode
 import io.telegramkt.model.chat.ChatId
+import io.telegramkt.model.chat.action.ChatAction
 import io.telegramkt.model.checklist.input.InputChecklist
 import io.telegramkt.model.contact.Contact
 import io.telegramkt.model.contact.ContactRequestBuilder
@@ -38,6 +39,9 @@ import io.telegramkt.model.message.entity.MessageEntity
 import io.telegramkt.model.poll.PollType
 import io.telegramkt.model.poll.input.InputPollOption
 import io.telegramkt.model.poll.input.PollOptionsBuilder
+import io.telegramkt.model.reaction.ReactionBuilder
+import io.telegramkt.model.reaction.ReactionType
+import io.telegramkt.model.reaction.reactions
 import io.telegramkt.model.suggested.SuggestedPostParameters
 import io.telegramkt.model.update.Update
 import io.telegramkt.model.user.User
@@ -102,6 +106,27 @@ class TelegramBotClient(
         parameter("reply_markup", replyMarkup?.let { json.encodeToString(it) })
         parameter("business_connection_id", businessConnectionId)
         parameter("message_effect_id", messageEffectId)
+    }
+
+    override suspend fun sendMessageDraft(
+        chatId: Int,
+        draftId: Int,
+        text: String,
+        messageThreadId: Int?,
+        parseMode: ParseMode?,
+        entities: List<MessageEntity>?
+    ): Boolean {
+        require(draftId != 0) { "draftId cannot be zero" }
+        require(text.length in 1..4096) { "The text must be between 1 and 4096 characters." }
+
+        return call("sendMessageDraft") {
+            parameter("chat_id", chatId)
+            parameter("draft_id", draftId)
+            parameter("text", text)
+            parameter("message_thread_id", messageThreadId)
+            parameter("parse_mode", parseMode)
+            parameter("entities", entities)
+        }
     }
 
     override suspend fun editMessageText(
@@ -1119,6 +1144,42 @@ class TelegramBotClient(
             parameter("reply_parameters", replyParameters)
             parameter("reply_markup", replyMarkup)
         }
+    }
+
+    override suspend fun sendChatAction(
+        chatId: ChatId,
+        action: ChatAction,
+        businessConnectionId: String?,
+        messageThreadId: Int?
+    ): Boolean = call("sendChatAction") {
+        parameter("chat_id", chatId.toApiParam())
+        parameter("action", action)
+        parameter("business_connection_id", businessConnectionId)
+        parameter("message_thread_id", messageThreadId)
+    }
+
+    // ===== Message Reaction methods. =====
+
+    override suspend fun setMessageReaction(
+        chatId: ChatId,
+        messageId: Int,
+        reaction: List<ReactionType>,
+        isBig: Boolean?
+    ): Boolean = call("setMessageReaction") {
+        parameter("chat_id", chatId.toApiParam())
+        parameter("message_id", messageId)
+        parameter("reaction", json.encodeToString(reaction))
+        parameter("is_big", isBig)
+    }
+
+    suspend fun setMessageReaction(
+        chatId: ChatId,
+        messageId: Int,
+        isBig: Boolean? = null,
+        block: ReactionBuilder.() -> Unit = {},
+    ): Boolean {
+        val builder = ReactionBuilder().apply(block)
+        return setMessageReaction(chatId, messageId, builder.reactions, isBig)
     }
 
     fun updatesFlow(

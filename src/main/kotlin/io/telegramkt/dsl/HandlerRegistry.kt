@@ -1,6 +1,5 @@
 package io.telegramkt.dsl
 
-import com.sun.jndi.ldap.pool.Pool
 import io.telegramkt.model.animation.Animation
 import io.telegramkt.model.audio.Audio
 import io.telegramkt.model.audio.Voice
@@ -12,6 +11,7 @@ import io.telegramkt.model.location.Location
 import io.telegramkt.model.location.Venue
 import io.telegramkt.model.photo.PhotoSize
 import io.telegramkt.model.photo.largest
+import io.telegramkt.model.poll.Poll
 import io.telegramkt.model.video.Video
 import io.telegramkt.model.video.VideoNote
 
@@ -36,7 +36,7 @@ typealias AudioHandler = suspend BotContext.(audio: Audio, caption: String?) -> 
 typealias VoiceHandler = suspend BotContext.(voice: Voice) -> Unit
 
 typealias ContactHandler = suspend BotContext.(contact: Contact) -> Unit
-typealias PollHandler = suspend BotContext.(poll: Pool) -> Unit
+typealias PollHandler = suspend BotContext.(poll: Poll) -> Unit
 
 typealias ChecklistHandler = suspend BotContext.(checklist: Checklist) -> Unit
 typealias DiceHandler = suspend BotContext.(dice: Dice) -> Unit
