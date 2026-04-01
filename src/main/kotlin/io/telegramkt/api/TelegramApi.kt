@@ -19,6 +19,8 @@ import io.telegramkt.model.reaction.ReactionType
 import io.telegramkt.model.suggested.SuggestedPostParameters
 import io.telegramkt.model.update.Update
 import io.telegramkt.model.user.User
+import io.telegramkt.model.user.profile.UserProfileAudios
+import io.telegramkt.model.user.profile.UserProfilePhotos
 import kotlin.time.Instant
 
 /**
@@ -93,8 +95,8 @@ interface TelegramApi {
     suspend fun editMessageText(
         chatId: ChatId? = null,
         messageId: Int? = null,
-        inlineMessageId: String? = null,
         text: String,
+        inlineMessageId: String? = null,
         parseMode: ParseMode? = null,
         entities: List<MessageEntity>? = null,
         disableWebPagePreview: Boolean? = null,
@@ -201,14 +203,6 @@ interface TelegramApi {
     ): List<MessageId>
 
     // ==================== CALLBACKS. ====================
-
-    /**
-     * Get file info and prepare for download.
-     *
-     * After getting file_path, download via:
-     * `https://api.telegram.org/file/bot<token>/<file_path>`
-     */
-    suspend fun getFile(fileId: String) : File
 
     /**
      * Answer callback query from inline keyboard.
@@ -710,4 +704,33 @@ interface TelegramApi {
         reaction: List<ReactionType>,
         isBig: Boolean? = null,
     ): Boolean
+
+    // ==================== User Profile. ====================
+    suspend fun getUserProfilePhotos(
+        userId: Int,
+        offset: Int? = null,
+        limit: Int? = null,
+    ): UserProfilePhotos
+
+    suspend fun getUserProfileAudios(
+        userId: Int,
+        offset: Int? = null,
+        limit: Int? = null,
+    ): UserProfileAudios
+
+    suspend fun setUserEmojiStatus(
+        userId: Int,
+        emojiStatusCustomEmojiId: String? = null,
+        emojiStatusExpirationDate: String? = null,
+    ): Boolean
+
+    // ==================== Files. ====================
+
+    /**
+     * Get file info and prepare for download.
+     *
+     * After getting file_path, download via:
+     * `https://api.telegram.org/file/bot<token>/<file_path>`
+     */
+    suspend fun getFile(fileId: String) : File
 }

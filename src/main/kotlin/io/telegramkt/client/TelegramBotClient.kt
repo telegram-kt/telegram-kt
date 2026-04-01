@@ -41,10 +41,11 @@ import io.telegramkt.model.poll.input.InputPollOption
 import io.telegramkt.model.poll.input.PollOptionsBuilder
 import io.telegramkt.model.reaction.ReactionBuilder
 import io.telegramkt.model.reaction.ReactionType
-import io.telegramkt.model.reaction.reactions
 import io.telegramkt.model.suggested.SuggestedPostParameters
 import io.telegramkt.model.update.Update
 import io.telegramkt.model.user.User
+import io.telegramkt.model.user.profile.UserProfileAudios
+import io.telegramkt.model.user.profile.UserProfilePhotos
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -55,13 +56,13 @@ import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 
 class TelegramBotClient(
-    private val token: String,
-    private val apiUrl: String = "https://api.telegram.org",
+    internal val token: String,
+    internal val apiUrl: String = "https://api.telegram.org",
     private val timeout: Duration = 30.seconds,
     private val json: Json = TelegramJson
 ) : TelegramApi, AutoCloseable {
 
-    private val httpClient = HttpClient(CIO) {
+    internal val httpClient = HttpClient(CIO) {
         expectSuccess = true
         engine {
             endpoint {
@@ -132,8 +133,8 @@ class TelegramBotClient(
     override suspend fun editMessageText(
         chatId: ChatId?,
         messageId: Int?,
-        inlineMessageId: String?,
         text: String,
+        inlineMessageId: String?,
         parseMode: ParseMode?,
         entities: List<MessageEntity>?,
         disableWebPagePreview: Boolean?,
@@ -283,9 +284,6 @@ class TelegramBotClient(
         parameter("timeout", timeout)
         parameter("allowed_updates", allowedUpdates?.let { json.encodeToString(it) })
     }
-
-    override suspend fun getFile(fileId: String): File =
-        call("getFile") { parameter("file_id", fileId) }
 
     override suspend fun answerCallbackQuery(
         callbackQueryId: String,
@@ -1181,6 +1179,55 @@ class TelegramBotClient(
         val builder = ReactionBuilder().apply(block)
         return setMessageReaction(chatId, messageId, builder.reactions, isBig)
     }
+
+    // ===== User files and emoji methods. =====
+
+    override suspend fun getUserProfilePhotos(
+        userId: Int,
+        offset: Int?,
+        limit: Int?
+    ): UserProfilePhotos {
+        if (limit != null) {
+            require(limit in 1..100) { "The limit can range from 1 to 100." }
+        }
+
+        return call("getUserProfilePhotos") {
+            parameter("user_id", userId)
+            parameter("offset", offset)
+            parameter("limit", limit)
+        }
+    }
+
+    override suspend fun getUserProfileAudios(
+        userId: Int,
+        offset: Int?,
+        limit: Int?
+    ): UserProfileAudios {
+        if (limit != null) {
+            require(limit in 1..100) { "The limit can range from 1 to 100." }
+        }
+
+        return call("getUserProfileAudios") {
+            parameter("user_id", userId)
+            parameter("offset", offset)
+            parameter("limit", limit)
+        }
+    }
+
+    override suspend fun setUserEmojiStatus(
+        userId: Int,
+        emojiStatusCustomEmojiId: String?,
+        emojiStatusExpirationDate: String?
+    ): Boolean = call("setUserEmojiStatus") {
+        parameter("user_id", userId)
+        parameter("emoji_status_custom_emoji_id", emojiStatusCustomEmojiId)
+        parameter("emoji_status_expiration_date", emojiStatusExpirationDate)
+    }
+
+    // ===== Get file method. =====
+
+    override suspend fun getFile(fileId: String): File =
+        call("getFile") { parameter("file_id", fileId) }
 
     fun updatesFlow(
         limit: Int = 100,
