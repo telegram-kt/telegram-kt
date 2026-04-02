@@ -3,6 +3,7 @@ package io.telegramkt.api
 import io.telegramkt.model.ParseMode
 import io.telegramkt.model.chat.ChatId
 import io.telegramkt.model.chat.action.ChatAction
+import io.telegramkt.model.chat.administrator.ChatPermissions
 import io.telegramkt.model.checklist.input.InputChecklist
 import io.telegramkt.model.file.File
 import io.telegramkt.model.file.input.InputFile
@@ -733,4 +734,27 @@ interface TelegramApi {
      * `https://api.telegram.org/file/bot<token>/<file_path>`
      */
     suspend fun getFile(fileId: String) : File
+
+    // ==================== Admin Actions. ====================
+    // ==================== Ban/unban chat members. ====================
+    suspend fun banChatMember(
+        chatId: ChatId,
+        userId: Long,
+        untilDate: Instant? = null,
+        revokeMessages: Boolean? = null,
+    ): Boolean
+
+    suspend fun unbanChatMember(
+        chatId: ChatId,
+        userId: Long,
+        onlyIfBanned: Boolean? = null,
+    ): Boolean
+
+    suspend fun restrictChatMember(
+        chatId: ChatId,
+        userId: Long,
+        permissions: ChatPermissions,
+        untilDate: Instant? = null,
+        useIndependentChatPermissions: Boolean? = null,
+    ): Boolean
 }

@@ -19,6 +19,8 @@ import io.telegramkt.json.TelegramJson
 import io.telegramkt.model.ParseMode
 import io.telegramkt.model.chat.ChatId
 import io.telegramkt.model.chat.action.ChatAction
+import io.telegramkt.model.chat.administrator.ChatPermissions
+import io.telegramkt.model.chat.administrator.ChatPermissionsBuilder
 import io.telegramkt.model.checklist.input.InputChecklist
 import io.telegramkt.model.contact.Contact
 import io.telegramkt.model.contact.ContactRequestBuilder
@@ -1228,6 +1230,52 @@ class TelegramBotClient(
 
     override suspend fun getFile(fileId: String): File =
         call("getFile") { parameter("file_id", fileId) }
+
+    override suspend fun banChatMember(
+        chatId: ChatId,
+        userId: Long,
+        untilDate: Instant?,
+        revokeMessages: Boolean?
+    ): Boolean = call("banChatMember") {
+        parameter("chat_id", chatId.toApiParam())
+        parameter("user_id", userId)
+        parameter("until_date", untilDate)
+        parameter("revoke_messages", revokeMessages)
+    }
+
+    override suspend fun unbanChatMember(
+        chatId: ChatId,
+        userId: Long,
+        onlyIfBanned: Boolean?
+    ): Boolean = call("unbanChatMember") {
+        parameter("chat_id", chatId.toApiParam())
+        parameter("user_id", userId)
+        parameter("only_if_banned", onlyIfBanned)
+    }
+
+    override suspend fun restrictChatMember(
+        chatId: ChatId,
+        userId: Long,
+        permissions: ChatPermissions,
+        untilDate: Instant?,
+        useIndependentChatPermissions: Boolean?,
+    ): Boolean = call("restrictChatMember") {
+        parameter("chat_id", chatId.toApiParam())
+        parameter("user_id", userId)
+        parameter("permissions", json.encodeToString(permissions))
+        parameter("until_date", untilDate)
+    }
+
+    suspend fun restrictChatMember(
+        chatId: ChatId,
+        userId: Long,
+        untilDate: Instant? = null,
+        useIndependentChatPermissions: Boolean? = null,
+        block: ChatPermissionsBuilder.() -> Unit = {}
+    ): Boolean {
+        val builder = ChatPermissionsBuilder().apply(block)
+        return restrictChatMember(chatId, userId, builder.build(), untilDate, useIndependentChatPermissions)
+    }
 
     fun updatesFlow(
         limit: Int = 100,
