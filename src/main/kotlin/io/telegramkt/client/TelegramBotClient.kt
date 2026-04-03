@@ -1231,6 +1231,8 @@ class TelegramBotClient(
     override suspend fun getFile(fileId: String): File =
         call("getFile") { parameter("file_id", fileId) }
 
+    // ===== Ban/unban user methods. =====
+
     override suspend fun banChatMember(
         chatId: ChatId,
         userId: Long,
@@ -1252,6 +1254,8 @@ class TelegramBotClient(
         parameter("user_id", userId)
         parameter("only_if_banned", onlyIfBanned)
     }
+
+    // ===== Restrict/Promote chat member methods. =====
 
     override suspend fun restrictChatMember(
         chatId: ChatId,
@@ -1275,6 +1279,100 @@ class TelegramBotClient(
     ): Boolean {
         val builder = ChatPermissionsBuilder().apply(block)
         return restrictChatMember(chatId, userId, builder.build(), untilDate, useIndependentChatPermissions)
+    }
+
+    override suspend fun promoteChatMember(
+        chatId: ChatId,
+        userId: Long,
+        isAnonymous: Boolean?,
+        canManageChat: Boolean?,
+        canDeleteMessages: Boolean?,
+        canManageVideoChats: Boolean?,
+        canRestrictMembers: Boolean?,
+        canPromoteMembers: Boolean?,
+        canChangeInfo: Boolean?,
+        canInviteUsers: Boolean?,
+        canPostStories: Boolean?,
+        canEditStories: Boolean?,
+        canDeleteStories: Boolean?,
+        canPostMessages: Boolean?,
+        canEditMessages: Boolean?,
+        canPinMessages: Boolean?,
+        canManageTopics: Boolean?,
+        canManageDirectMessages: Boolean?,
+        canManageTags: Boolean?
+    ): Boolean = call("promoteChatMember") {
+        parameter("chat_id", chatId.toApiParam())
+        parameter("user_id", userId)
+        parameter("is_anonymous", isAnonymous)
+        parameter("can_manage_chat", canManageChat)
+        parameter("can_delete_messages", canDeleteMessages)
+        parameter("can_manage_video_chats", canManageVideoChats)
+        parameter("can_restrict_members", canRestrictMembers)
+        parameter("can_promote_members", canPromoteMembers)
+        parameter("can_change_info", canChangeInfo)
+        parameter("can_invite_users", canInviteUsers)
+        parameter("can_change_info", canChangeInfo)
+        parameter("can_invite_users", canInviteUsers)
+        parameter("can_post_stories", canPostStories)
+        parameter("can_post_stories", canPostStories)
+        parameter("can_edit_stories", canEditStories)
+        parameter("can_delete_stories", canDeleteStories)
+        parameter("can_post_messages", canPostMessages)
+        parameter("can_edit_messages", canEditMessages)
+        parameter("can_pin_messages", canPinMessages)
+        parameter("can_manage_topics", canManageTopics)
+        parameter("can_manage_direct_messages", canManageDirectMessages)
+        parameter("can_manage_tags", canManageTags)
+    }
+
+    // ===== Set chat administrator custom title method. =====
+
+    override suspend fun setChatAdministratorCustomTitle(
+        chatId: ChatId,
+        userId: Long,
+        customTitle: String
+    ): Boolean {
+        require(customTitle.length in 0..16) { "Chat title must be between 0 and 16 characters." }
+
+        return call("setChatAdministratorCustomTitle") {
+            parameter("chat_id", chatId.toApiParam())
+            parameter("user_id", userId)
+            parameter("custom_title", customTitle)
+        }
+    }
+
+    // ===== Set chat member tag method. =====
+    override suspend fun setChatMemberTag(
+        chatId: ChatId,
+        userId: Long,
+        tag: String
+    ): Boolean {
+        require(tag.length in 0..16) { "Tag must be between 0 and 16 characters." }
+
+        return call("setChatMemberTag") {
+            parameter("chat_id", chatId.toApiParam())
+            parameter("user_id", userId)
+            parameter("tag", tag)
+        }
+    }
+
+    // ===== Ban/unban chat sender chat methods. =====
+
+    override suspend fun banChatSenderChat(
+        chatId: ChatId,
+        senderChatId: Long
+    ): Boolean = call("banChatSenderChat") {
+        parameter("chat_id", chatId)
+        parameter("sender_chat_id", senderChatId)
+    }
+
+    override suspend fun unbanChatSenderChat(
+        chatId: ChatId,
+        senderChatId: Long
+    ): Boolean = call("unbanChatSenderChat") {
+        parameter("chat_id", chatId)
+        parameter("sender_chat_id", senderChatId)
     }
 
     fun updatesFlow(

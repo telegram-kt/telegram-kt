@@ -750,11 +750,63 @@ interface TelegramApi {
         onlyIfBanned: Boolean? = null,
     ): Boolean
 
+    // ==================== Restrict and promote chat members. ====================
+
     suspend fun restrictChatMember(
         chatId: ChatId,
         userId: Long,
         permissions: ChatPermissions,
         untilDate: Instant? = null,
         useIndependentChatPermissions: Boolean? = null,
+    ): Boolean
+
+    suspend fun promoteChatMember(
+        chatId: ChatId,
+        userId: Long,
+        isAnonymous: Boolean? = null,
+        canManageChat: Boolean? = null,
+        canDeleteMessages: Boolean? = null,
+        canManageVideoChats: Boolean? = null,
+        canRestrictMembers: Boolean? = null,
+        canPromoteMembers: Boolean? = null,
+        canChangeInfo: Boolean? = null,
+        canInviteUsers: Boolean? = null,
+        canPostStories: Boolean? = null,
+        canEditStories: Boolean? = null,
+        canDeleteStories: Boolean? = null,
+        canPostMessages: Boolean? = null,
+        canEditMessages: Boolean? = null,
+        canPinMessages: Boolean? = null,
+        canManageTopics: Boolean? = null,
+        canManageDirectMessages: Boolean? = null,
+        canManageTags: Boolean? = null,
+    ): Boolean
+
+    // ==================== Set chat administrator custom title. ====================
+
+    suspend fun setChatAdministratorCustomTitle(
+        chatId: ChatId,
+        userId: Long,
+        customTitle: String,
+    ): Boolean
+
+    // ==================== Set chat member custom tag. ====================
+
+    suspend fun setChatMemberTag(
+        chatId: ChatId,
+        userId: Long,
+        tag: String,
+    ): Boolean
+
+    // ==================== Ban/unban chan sender chat.. ====================
+
+    suspend fun banChatSenderChat(
+        chatId: ChatId,
+        senderChatId: Long,
+    ): Boolean
+
+    suspend fun unbanChatSenderChat(
+        chatId: ChatId,
+        senderChatId: Long,
     ): Boolean
 }
