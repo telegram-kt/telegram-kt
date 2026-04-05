@@ -19,7 +19,7 @@ class TelegramBot(
         limit: Int = 100,
         timeout: Int = 30,
         allowedUpdates: List<String>? = null,
-    ) {
+    ): TelegramBot {
         pollingJob = scope.launch {
             println("Bot started polling...")
             client.updatesFlow(limit, timeout, allowedUpdates)
@@ -30,9 +30,11 @@ class TelegramBot(
                     }
                 }
         }
+
+        return this
     }
 
-    suspend fun dropPendingUpdates() {
+    suspend fun dropPendingUpdates(): TelegramBot {
         try {
             val updates = client.getUpdates(offset = -1, limit = 100, timeout = 0)
             if (updates.isNotEmpty()) {
@@ -42,6 +44,8 @@ class TelegramBot(
         } catch (e: Exception) {
             println("Error on drop updates: ${e.message}")
         }
+
+        return this
     }
 
     fun stop() {
