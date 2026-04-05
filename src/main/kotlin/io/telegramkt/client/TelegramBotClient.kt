@@ -17,6 +17,7 @@ import io.telegramkt.exception.TelegramNetworkException
 import io.telegramkt.exception.TelegramRateLimitException
 import io.telegramkt.json.TelegramJson
 import io.telegramkt.model.ParseMode
+import io.telegramkt.model.chat.ChatFullInfo
 import io.telegramkt.model.chat.ChatId
 import io.telegramkt.model.chat.action.ChatAction
 import io.telegramkt.model.chat.administrator.ChatPermissions
@@ -113,7 +114,7 @@ class TelegramBotClient(
     }
 
     override suspend fun sendMessageDraft(
-        chatId: Int,
+        chatId: Long,
         draftId: Int,
         text: String,
         messageThreadId: Int?,
@@ -1186,7 +1187,7 @@ class TelegramBotClient(
     // ===== User files and emoji methods. =====
 
     override suspend fun getUserProfilePhotos(
-        userId: Int,
+        userId: Long,
         offset: Int?,
         limit: Int?
     ): UserProfilePhotos {
@@ -1202,7 +1203,7 @@ class TelegramBotClient(
     }
 
     override suspend fun getUserProfileAudios(
-        userId: Int,
+        userId: Long,
         offset: Int?,
         limit: Int?
     ): UserProfileAudios {
@@ -1218,7 +1219,7 @@ class TelegramBotClient(
     }
 
     override suspend fun setUserEmojiStatus(
-        userId: Int,
+        userId: Long,
         emojiStatusCustomEmojiId: String?,
         emojiStatusExpirationDate: String?
     ): Boolean = call("setUserEmojiStatus") {
@@ -1364,7 +1365,7 @@ class TelegramBotClient(
         chatId: ChatId,
         senderChatId: Long
     ): Boolean = call("banChatSenderChat") {
-        parameter("chat_id", chatId)
+        parameter("chat_id", chatId.toApiParam())
         parameter("sender_chat_id", senderChatId)
     }
 
@@ -1372,7 +1373,7 @@ class TelegramBotClient(
         chatId: ChatId,
         senderChatId: Long
     ): Boolean = call("unbanChatSenderChat") {
-        parameter("chat_id", chatId)
+        parameter("chat_id", chatId.toApiParam())
         parameter("sender_chat_id", senderChatId)
     }
 
@@ -1383,7 +1384,7 @@ class TelegramBotClient(
         permissions: ChatPermissions,
         useIndependentChatPermissions: Boolean?
     ): Boolean = call("setChatPermissions") {
-        parameter("chat_id", chatId)
+        parameter("chat_id", chatId.toApiParam())
         parameter("permissions", permissions)
         parameter("use_independent_chat_permissions", useIndependentChatPermissions)
     }
@@ -1398,7 +1399,7 @@ class TelegramBotClient(
     }
 
     override suspend fun exportChatInviteLink(chatId: ChatId): String? = call("exportChatInviteLink") {
-        parameter("chat_id", chatId)
+        parameter("chat_id", chatId.toApiParam())
     }
 
     // ===== Create/edit/revoke chat invite link methods. =====
@@ -1415,7 +1416,7 @@ class TelegramBotClient(
         }
 
         return call("createChatInviteLink") {
-            parameter("chat_id", chatId)
+            parameter("chat_id", chatId.toApiParam())
             parameter("name", name)
             parameter("expire_date", expireDate)
             parameter("member_limit", memberLimit)
@@ -1436,7 +1437,7 @@ class TelegramBotClient(
         }
 
         return call("createChatInviteLink") {
-            parameter("chat_id", chatId)
+            parameter("chat_id", chatId.toApiParam())
             parameter("invite_link", inviteLink)
             parameter("name", name)
             parameter("expire_date", expireDate)
@@ -1449,7 +1450,7 @@ class TelegramBotClient(
         chatId: ChatId,
         inviteLink: String
     ): ChatInviteLink = call("createChatInviteLink") {
-        parameter("chat_id", chatId)
+        parameter("chat_id", chatId.toApiParam())
         parameter("invite_link", inviteLink)
     }
 
@@ -1473,7 +1474,7 @@ class TelegramBotClient(
         }
 
         return call("createChatInviteLink") {
-            parameter("chat_id", chatId)
+            parameter("chat_id", chatId.toApiParam())
             parameter("name", name)
             parameter("subscription_period", subscriptionPeriod)
             parameter("subscription_price", subscriptionPrice)
@@ -1490,7 +1491,7 @@ class TelegramBotClient(
         }
 
         return call("createChatInviteLink") {
-            parameter("chat_id", chatId)
+            parameter("chat_id", chatId.toApiParam())
             parameter("invite_link", inviteLink)
             parameter("name", name)
         }
@@ -1502,7 +1503,7 @@ class TelegramBotClient(
         chatId: ChatId,
         userId: Long
     ): Boolean = call("approveChatJoinRequest") {
-        parameter("chat_id", chatId)
+        parameter("chat_id", chatId.toApiParam())
         parameter("user_id", userId)
     }
 
@@ -1510,7 +1511,7 @@ class TelegramBotClient(
         chatId: ChatId,
         userId: Long
     ): Boolean = call("declineChatJoinRequest") {
-        parameter("chat_id", chatId)
+        parameter("chat_id", chatId.toApiParam())
         parameter("user_id", userId)
     }
 
@@ -1520,12 +1521,12 @@ class TelegramBotClient(
         chatId: ChatId,
         photo: InputFile
     ): Boolean = call("setChatPhoto") {
-        parameter("chat_id", chatId)
+        parameter("chat_id", chatId.toApiParam())
         parameter("photo", photo)
     }
 
     override suspend fun deleteChatPhoto(chatId: ChatId): Boolean = call("deleteChatPhoto") {
-        parameter("chat_id", chatId)
+        parameter("chat_id", chatId.toApiParam())
     }
 
     // ===== Set chat title/description methods. =====
@@ -1534,7 +1535,7 @@ class TelegramBotClient(
         require(title.length in 1..128) { "Chat title must be between 0 and 128 characters." }
 
         return call("setChatTitle") {
-            parameter("chat_id", chatId)
+            parameter("chat_id", chatId.toApiParam())
             parameter("title", title)
         }
     }
@@ -1546,7 +1547,7 @@ class TelegramBotClient(
         require(description.length in 1..128) { "Chat description must be between 0 and 128 characters." }
 
         return call("setChatDescription") {
-            parameter("chat_id", chatId)
+            parameter("chat_id", chatId.toApiParam())
             parameter("description", description)
         }
     }
@@ -1559,7 +1560,7 @@ class TelegramBotClient(
         businessConnectionId: String?,
         disableNotification: Boolean?
     ): Boolean = call("pinChatMessage") {
-        parameter("chat_id", chatId)
+        parameter("chat_id", chatId.toApiParam())
         parameter("message_id", messageId)
         parameter("business_connection_id", businessConnectionId)
         parameter("disable_notification", disableNotification)
@@ -1570,19 +1571,24 @@ class TelegramBotClient(
         messageId: Int,
         businessConnectionId: String?
     ): Boolean = call("unpinChatMessage") {
-        parameter("chat_id", chatId)
+        parameter("chat_id", chatId.toApiParam())
         parameter("message_id", messageId)
         parameter("business_connection_id", businessConnectionId)
     }
 
     override suspend fun unpinAllChatMessages(chatId: ChatId): Boolean = call("unpinAllChatMessages") {
-        parameter("chat_id", chatId)
+        parameter("chat_id", chatId.toApiParam())
     }
 
     // ===== Leave chat method. =====
 
     override suspend fun leaveChat(chatId: ChatId): Boolean = call("leaveChat") {
-        parameter("chat_id", chatId)
+        parameter("chat_id", chatId.toApiParam())
+    }
+
+    // ===== Get chat method. =====
+    override suspend fun getChat(chatId: ChatId): ChatFullInfo = call("getChat") {
+        parameter("chat_id", chatId.toApiParam())
     }
 
     fun updatesFlow(

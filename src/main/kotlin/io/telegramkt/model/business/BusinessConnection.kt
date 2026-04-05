@@ -8,7 +8,7 @@ import kotlinx.serialization.Serializable
 data class BusinessConnection(
     @SerialName("id") val id: String,
     @SerialName("user") val user: User,
-    @SerialName("user_chat_id") val userChatId: Int,
+    @SerialName("user_chat_id") val userChatId: Long,
     @SerialName("date") val date: Int,
     @SerialName("rights") val rights: BusinessBotRights? = null,
     @SerialName("is_enabled") val isEnabled: Boolean,

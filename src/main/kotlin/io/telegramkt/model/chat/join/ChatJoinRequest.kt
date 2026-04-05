@@ -10,7 +10,7 @@ import kotlinx.serialization.Serializable
 data class ChatJoinRequest(
     @SerialName("chat") val chat: Chat,
     @SerialName("from") val from: User,
-    @SerialName("user_chat_id") val userChatId: Int,
+    @SerialName("user_chat_id") val userChatId: Long,
     @SerialName("date") val date: Int,
     @SerialName("bio") val bio: String? = null,
     @SerialName("invite_link") val inviteLink: ChatInviteLink? = null,

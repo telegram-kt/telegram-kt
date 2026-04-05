@@ -1,6 +1,7 @@
 package io.telegramkt.api
 
 import io.telegramkt.model.ParseMode
+import io.telegramkt.model.chat.ChatFullInfo
 import io.telegramkt.model.chat.ChatId
 import io.telegramkt.model.chat.action.ChatAction
 import io.telegramkt.model.chat.administrator.ChatPermissions
@@ -83,7 +84,7 @@ interface TelegramApi {
     ): Message
 
     suspend fun sendMessageDraft(
-        chatId: Int,
+        chatId: Long,
         draftId: Int,
         text: String,
         messageThreadId: Int? = null,
@@ -710,19 +711,19 @@ interface TelegramApi {
 
     // ==================== User Profile. ====================
     suspend fun getUserProfilePhotos(
-        userId: Int,
+        userId: Long,
         offset: Int? = null,
         limit: Int? = null,
     ): UserProfilePhotos
 
     suspend fun getUserProfileAudios(
-        userId: Int,
+        userId: Long,
         offset: Int? = null,
         limit: Int? = null,
     ): UserProfileAudios
 
     suspend fun setUserEmojiStatus(
-        userId: Int,
+        userId: Long,
         emojiStatusCustomEmojiId: String? = null,
         emojiStatusExpirationDate: String? = null,
     ): Boolean
@@ -908,5 +909,9 @@ interface TelegramApi {
     suspend fun unpinAllChatMessages(chatId: ChatId): Boolean
 
     // ==================== Leave from chat. ====================
+
     suspend fun leaveChat(chatId: ChatId): Boolean
+
+    // ==================== Get chat. ====================
+    suspend fun getChat(chatId: ChatId): ChatFullInfo
 }

@@ -6,7 +6,7 @@ import kotlinx.serialization.SerialName
 
 @Serializable
 data class SharedUser(
-    @SerialName("user_id") val userId: Int,
+    @SerialName("user_id") val userId: Long,
     @SerialName("first_name") val firstName: String? = null,
     @SerialName("last_name") val lastName: String? = null,
     @SerialName("username") val username: String? = null,
