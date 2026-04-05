@@ -871,4 +871,42 @@ interface TelegramApi {
         chatId: ChatId,
         userId: Long,
     ): Boolean
+
+    // ==================== Chat photo, title and description. ====================
+
+    suspend fun setChatPhoto(
+        chatId: ChatId,
+        photo: InputFile,
+    ): Boolean
+
+    suspend fun deleteChatPhoto(chatId: ChatId): Boolean
+
+    suspend fun setChatTitle(
+        chatId: ChatId,
+        title: String,
+    ): Boolean
+
+    suspend fun setChatDescription(
+        chatId: ChatId,
+        description: String,
+    ): Boolean
+
+    // ==================== Pin/unpin messages. ====================
+    suspend fun pinChatMessage(
+        chatId: ChatId,
+        messageId: Int,
+        businessConnectionId: String? = null,
+        disableNotification: Boolean? = null,
+    ): Boolean
+
+    suspend fun unpinChatMessage(
+        chatId: ChatId,
+        messageId: Int,
+        businessConnectionId: String? = null,
+    ): Boolean
+
+    suspend fun unpinAllChatMessages(chatId: ChatId): Boolean
+
+    // ==================== Leave from chat. ====================
+    suspend fun leaveChat(chatId: ChatId): Boolean
 }

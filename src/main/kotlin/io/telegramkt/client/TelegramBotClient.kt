@@ -1514,6 +1514,77 @@ class TelegramBotClient(
         parameter("user_id", userId)
     }
 
+    // ===== Set/delete chat photo methods. =====
+
+    override suspend fun setChatPhoto(
+        chatId: ChatId,
+        photo: InputFile
+    ): Boolean = call("setChatPhoto") {
+        parameter("chat_id", chatId)
+        parameter("photo", photo)
+    }
+
+    override suspend fun deleteChatPhoto(chatId: ChatId): Boolean = call("deleteChatPhoto") {
+        parameter("chat_id", chatId)
+    }
+
+    // ===== Set chat title/description methods. =====
+
+    override suspend fun setChatTitle(chatId: ChatId, title: String): Boolean {
+        require(title.length in 1..128) { "Chat title must be between 0 and 128 characters." }
+
+        return call("setChatTitle") {
+            parameter("chat_id", chatId)
+            parameter("title", title)
+        }
+    }
+
+    override suspend fun setChatDescription(
+        chatId: ChatId,
+        description: String
+    ): Boolean {
+        require(description.length in 1..128) { "Chat description must be between 0 and 128 characters." }
+
+        return call("setChatDescription") {
+            parameter("chat_id", chatId)
+            parameter("description", description)
+        }
+    }
+
+    // ===== Pin/unpin messages methods. =====
+
+    override suspend fun pinChatMessage(
+        chatId: ChatId,
+        messageId: Int,
+        businessConnectionId: String?,
+        disableNotification: Boolean?
+    ): Boolean = call("pinChatMessage") {
+        parameter("chat_id", chatId)
+        parameter("message_id", messageId)
+        parameter("business_connection_id", businessConnectionId)
+        parameter("disable_notification", disableNotification)
+    }
+
+    override suspend fun unpinChatMessage(
+        chatId: ChatId,
+        messageId: Int,
+        businessConnectionId: String?
+    ): Boolean = call("unpinChatMessage") {
+        parameter("chat_id", chatId)
+        parameter("message_id", messageId)
+        parameter("business_connection_id", businessConnectionId)
+    }
+
+    override suspend fun unpinAllChatMessages(chatId: ChatId): Boolean = call("unpinAllChatMessages") {
+        parameter("chat_id", chatId)
+    }
+
+    // ===== Leave chat method. =====
+
+    override suspend fun leaveChat(chatId: ChatId): Boolean = call("leaveChat") {
+        parameter("chat_id", chatId)
+    }
+
     fun updatesFlow(
         limit: Int = 100,
         timeout: Int = 30,
