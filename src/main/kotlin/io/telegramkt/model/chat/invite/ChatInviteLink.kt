@@ -1,8 +1,10 @@
 package io.telegramkt.model.chat.invite
 
 import io.telegramkt.model.user.User
+import io.telegramkt.serialization.UnixTimestampSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlin.time.Instant
 
 @Serializable
 data class ChatInviteLink(
@@ -12,7 +14,9 @@ data class ChatInviteLink(
     @SerialName("is_primary") val isPrimary: Boolean,
     @SerialName("is_revoked") val isRevoked: Boolean,
     @SerialName("name") val name: String? = null,
-    @SerialName("expire_date") val expireDate: Int? = null,
+    @SerialName("expire_date")
+    @Serializable(with = UnixTimestampSerializer::class)
+    val expireDate: Instant? = null,
     @SerialName("member_limit") val memberLimit: Int? = null,
     @SerialName("pending_join_request_count") val pendingJoinRequestCount: Int? = null,
     @SerialName("subscription_period") val subscriptionPeriod: Int? = null,

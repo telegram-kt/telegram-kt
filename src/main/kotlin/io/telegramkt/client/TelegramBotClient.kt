@@ -21,6 +21,7 @@ import io.telegramkt.model.chat.ChatId
 import io.telegramkt.model.chat.action.ChatAction
 import io.telegramkt.model.chat.administrator.ChatPermissions
 import io.telegramkt.model.chat.administrator.ChatPermissionsBuilder
+import io.telegramkt.model.chat.invite.ChatInviteLink
 import io.telegramkt.model.checklist.input.InputChecklist
 import io.telegramkt.model.contact.Contact
 import io.telegramkt.model.contact.ContactRequestBuilder
@@ -1373,6 +1374,144 @@ class TelegramBotClient(
     ): Boolean = call("unbanChatSenderChat") {
         parameter("chat_id", chatId)
         parameter("sender_chat_id", senderChatId)
+    }
+
+    // ===== Set chat permissions methods. =====
+
+    override suspend fun setChatPermissions(
+        chatId: ChatId,
+        permissions: ChatPermissions,
+        useIndependentChatPermissions: Boolean?
+    ): Boolean = call("setChatPermissions") {
+        parameter("chat_id", chatId)
+        parameter("permissions", permissions)
+        parameter("use_independent_chat_permissions", useIndependentChatPermissions)
+    }
+
+    suspend fun setChatPermissions(
+        chatId: ChatId,
+        useIndependentChatPermissions: Boolean? = null,
+        block: ChatPermissionsBuilder.() -> Unit = {},
+    ): Boolean {
+        val builder = ChatPermissionsBuilder().apply(block)
+        return setChatPermissions(chatId, builder.build(), useIndependentChatPermissions)
+    }
+
+    override suspend fun exportChatInviteLink(chatId: ChatId): String? = call("exportChatInviteLink") {
+        parameter("chat_id", chatId)
+    }
+
+    // ===== Create/edit/revoke chat invite link methods. =====
+
+    override suspend fun createChatInviteLink(
+        chatId: ChatId,
+        name: String?,
+        expireDate: Instant?,
+        memberLimit: Int?,
+        createsJoinRequest: Boolean?
+    ): ChatInviteLink  {
+        if (name != null) {
+            require(name.length in 0..32) { "Name must be between 0 and 32 characters." }
+        }
+
+        return call("createChatInviteLink") {
+            parameter("chat_id", chatId)
+            parameter("name", name)
+            parameter("expire_date", expireDate)
+            parameter("member_limit", memberLimit)
+            parameter("creates_join_request", createsJoinRequest)
+        }
+    }
+
+    override suspend fun editChatInviteLink(
+        chatId: ChatId,
+        inviteLink: String,
+        name: String?,
+        expireDate: Instant?,
+        memberLimit: Int?,
+        createsJoinRequest: Boolean?
+    ): ChatInviteLink {
+        if (name != null) {
+            require(name.length in 0..32) { "Name must be between 0 and 32 characters." }
+        }
+
+        return call("createChatInviteLink") {
+            parameter("chat_id", chatId)
+            parameter("invite_link", inviteLink)
+            parameter("name", name)
+            parameter("expire_date", expireDate)
+            parameter("member_limit", memberLimit)
+            parameter("creates_join_request", createsJoinRequest)
+        }
+    }
+
+    override suspend fun revokeChatInviteLink(
+        chatId: ChatId,
+        inviteLink: String
+    ): ChatInviteLink = call("createChatInviteLink") {
+        parameter("chat_id", chatId)
+        parameter("invite_link", inviteLink)
+    }
+
+    // ===== Create/edit/ chat subscription invite link methods. =====
+
+    override suspend fun createChatSubscriptionInviteLink(
+        chatId: ChatId,
+        subscriptionPeriod: Duration,
+        subscriptionPrice: Int,
+        name: String?
+    ): ChatInviteLink {
+        require(subscriptionPeriod.inWholeSeconds in 0..2592000) {
+            "Subscription period can range from 1 second to 30 days."
+        }
+        require(subscriptionPrice in 1..10000) {
+            "Subscription price can range from 1 to 10,000 stars."
+        }
+
+        if (name != null) {
+            require(name.length in 0..32) { "Name must be between 0 and 32 characters." }
+        }
+
+        return call("createChatInviteLink") {
+            parameter("chat_id", chatId)
+            parameter("name", name)
+            parameter("subscription_period", subscriptionPeriod)
+            parameter("subscription_price", subscriptionPrice)
+        }
+    }
+
+    override suspend fun editChatSubscriptionInviteLink(
+        chatId: ChatId,
+        inviteLink: String,
+        name: String?
+    ): ChatInviteLink {
+        if (name != null) {
+            require(name.length in 0..32) { "Name must be between 0 and 32 characters." }
+        }
+
+        return call("createChatInviteLink") {
+            parameter("chat_id", chatId)
+            parameter("invite_link", inviteLink)
+            parameter("name", name)
+        }
+    }
+
+    // ===== Approve/decline chat join request methods. =====
+
+    override suspend fun approveChatJoinRequest(
+        chatId: ChatId,
+        userId: Long
+    ): Boolean = call("approveChatJoinRequest") {
+        parameter("chat_id", chatId)
+        parameter("user_id", userId)
+    }
+
+    override suspend fun declineChatJoinRequest(
+        chatId: ChatId,
+        userId: Long
+    ): Boolean = call("declineChatJoinRequest") {
+        parameter("chat_id", chatId)
+        parameter("user_id", userId)
     }
 
     fun updatesFlow(

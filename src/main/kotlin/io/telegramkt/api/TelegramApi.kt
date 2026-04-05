@@ -4,6 +4,7 @@ import io.telegramkt.model.ParseMode
 import io.telegramkt.model.chat.ChatId
 import io.telegramkt.model.chat.action.ChatAction
 import io.telegramkt.model.chat.administrator.ChatPermissions
+import io.telegramkt.model.chat.invite.ChatInviteLink
 import io.telegramkt.model.checklist.input.InputChecklist
 import io.telegramkt.model.file.File
 import io.telegramkt.model.file.input.InputFile
@@ -22,6 +23,7 @@ import io.telegramkt.model.update.Update
 import io.telegramkt.model.user.User
 import io.telegramkt.model.user.profile.UserProfileAudios
 import io.telegramkt.model.user.profile.UserProfilePhotos
+import kotlin.time.Duration
 import kotlin.time.Instant
 
 /**
@@ -798,7 +800,7 @@ interface TelegramApi {
         tag: String,
     ): Boolean
 
-    // ==================== Ban/unban chan sender chat.. ====================
+    // ==================== Ban/unban chan sender chat. ====================
 
     suspend fun banChatSenderChat(
         chatId: ChatId,
@@ -808,5 +810,65 @@ interface TelegramApi {
     suspend fun unbanChatSenderChat(
         chatId: ChatId,
         senderChatId: Long,
+    ): Boolean
+
+    // ==================== Set chat permissions. ====================
+
+    suspend fun setChatPermissions(
+        chatId: ChatId,
+        permissions: ChatPermissions,
+        useIndependentChatPermissions: Boolean? = null,
+    ): Boolean
+
+    // ==================== Chat invite link. ====================
+    suspend fun exportChatInviteLink(chatId: ChatId): String?
+
+    suspend fun createChatInviteLink(
+        chatId: ChatId,
+        name: String? = null,
+        expireDate: Instant? = null,
+        memberLimit: Int? = null,
+        createsJoinRequest: Boolean? = null,
+    ): ChatInviteLink
+
+    suspend fun editChatInviteLink(
+        chatId: ChatId,
+        inviteLink: String,
+        name: String? = null,
+        expireDate: Instant? = null,
+        memberLimit: Int? = null,
+        createsJoinRequest: Boolean? = null,
+    ): ChatInviteLink
+
+    suspend fun revokeChatInviteLink(
+        chatId: ChatId,
+        inviteLink: String,
+    ): ChatInviteLink
+
+    // ==================== Chat subscription invite link. ====================
+
+    suspend fun createChatSubscriptionInviteLink(
+        chatId: ChatId,
+        subscriptionPeriod: Duration,
+        subscriptionPrice: Int,
+        name: String? = null,
+    ): ChatInviteLink
+
+    suspend fun editChatSubscriptionInviteLink(
+        chatId: ChatId,
+        inviteLink: String,
+        name: String? = null,
+    ): ChatInviteLink
+
+    // ==================== Join requests actions. ====================
+
+    suspend fun approveChatJoinRequest(
+        chatId: ChatId,
+        userId: Long,
+    ): Boolean
+
+    suspend fun declineChatJoinRequest(
+        chatId: ChatId,
+        userId: Long,
     ): Boolean
 }

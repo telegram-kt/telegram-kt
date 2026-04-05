@@ -19,6 +19,7 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.encodeToJsonElement
 import kotlin.random.Random
+import kotlin.time.Duration
 import kotlin.time.Instant
 
 internal fun Map<String, Any?>.hasBinaryFiles(): Boolean =
@@ -56,6 +57,7 @@ internal fun Json.buildJsonBody(params: Map<String, Any?>): JsonObject =
                     encodeToJsonElement(value.toString().lowercase())
                 }
                 is Instant -> JsonPrimitive(value.epochSeconds)
+                is Duration -> JsonPrimitive(value.inWholeSeconds)
                 else -> encodeToJsonElement(value)
             }
             put(key, element)
