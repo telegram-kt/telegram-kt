@@ -21,7 +21,7 @@
 
 This library is currently in active development. APIs may change until we reach v1.0.0.
 
-**We'd love your help!** See [Contributing](#contributing) section below.
+**We'd love your help!** See [Contributing](https://github.com/telegram-kt/telegram-kt/tree/master?tab=readme-ov-file#-contributing) section below.
 
 ## ✨ Features
 
@@ -54,7 +54,7 @@ fun main() {
 ```
 
 ## 📚 Examples
-### All examples places in [examples](#examples) path
+### All examples places in [examples](https://github.com/telegram-kt/telegram-kt/tree/master/examples) path
 
 ## 🤝 Contributing
 We welcome contributions! Areas where help is needed:
