@@ -6,9 +6,12 @@ import io.telegramkt.model.chat.ChatId
 import io.telegramkt.model.chat.action.ChatAction
 import io.telegramkt.model.chat.administrator.ChatPermissions
 import io.telegramkt.model.chat.invite.ChatInviteLink
+import io.telegramkt.model.chat.member.ChatMember
 import io.telegramkt.model.checklist.input.InputChecklist
 import io.telegramkt.model.file.File
 import io.telegramkt.model.file.input.InputFile
+import io.telegramkt.model.forum.ForumTopic
+import io.telegramkt.model.forum.topic.TopicIconColor
 import io.telegramkt.model.keyboard.reply.InlineKeyboardMarkup
 import io.telegramkt.model.keyboard.reply.ReplyMarkup
 import io.telegramkt.model.keyboard.reply.parameters.ReplyParameters
@@ -19,6 +22,7 @@ import io.telegramkt.model.message.entity.MessageEntity
 import io.telegramkt.model.poll.PollType
 import io.telegramkt.model.poll.input.InputPollOption
 import io.telegramkt.model.reaction.ReactionType
+import io.telegramkt.model.sticker.Sticker
 import io.telegramkt.model.suggested.SuggestedPostParameters
 import io.telegramkt.model.update.Update
 import io.telegramkt.model.user.User
@@ -914,4 +918,80 @@ interface TelegramApi {
 
     // ==================== Get chat. ====================
     suspend fun getChat(chatId: ChatId): ChatFullInfo
+
+    // ==================== Get chat administrators. ====================
+    suspend fun getChatAdministrators(chatId: ChatId): List<ChatMember>
+
+    // ==================== Get chat members. ====================
+
+    suspend fun getChatMemberCount(chatId: ChatId): Int
+
+    suspend fun getChatMember(
+        chatId: ChatId,
+        userId: Long,
+    ): ChatMember
+
+    // ==================== Set/delete chat sticker set. ====================
+
+    suspend fun setChatStickerSet(
+        chatId: ChatId,
+        stickerSetName: String,
+    ): Boolean
+
+    suspend fun deleteChatStickerSet(chatId: ChatId): Boolean
+
+    // ==================== Forum topics. ====================
+
+    suspend fun getForumTopicIconStickers(): List<Sticker>
+
+    suspend fun createForumTopic(
+        chatId: ChatId,
+        name: String,
+        iconColor: TopicIconColor? = null,
+        iconCustomEmojiId: String? = null,
+    ): ForumTopic
+
+    suspend fun editForumTopic(
+        chatId: ChatId,
+        messageThreadId: Int,
+        name: String? = null,
+        iconCustomEmojiId: String? = null,
+    ): Boolean
+
+    suspend fun closeForumTopic(
+        chatId: ChatId,
+        messageThreadId: Int,
+    ): Boolean
+
+    suspend fun reopenForumTopic(
+        chatId: ChatId,
+        messageThreadId: Int,
+    ): Boolean
+
+    suspend fun deleteForumTopic(
+        chatId: ChatId,
+        messageThreadId: Int,
+    ): Boolean
+
+    suspend fun unpinAllForumTopicMessages(
+        chatId: ChatId,
+        messageThreadId: Int,
+    ): Boolean
+
+    // ==================== General forum topic. ====================
+
+    suspend fun editGeneralForumTopic(
+        chatId: ChatId,
+        name: String,
+    ): Boolean
+
+    suspend fun closeGeneralForumTopic(chatId: ChatId): Boolean
+
+    suspend fun reopenGeneralForumTopic(chatId: ChatId): Boolean
+
+    suspend fun hideGeneralForumTopic(chatId: ChatId): Boolean
+
+    suspend fun unhideGeneralForumTopic(chatId: ChatId): Boolean
+
+    suspend fun unpinAllGeneralForumTopicMessages(chatId: ChatId): Boolean
 }

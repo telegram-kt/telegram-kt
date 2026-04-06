@@ -23,11 +23,14 @@ import io.telegramkt.model.chat.action.ChatAction
 import io.telegramkt.model.chat.administrator.ChatPermissions
 import io.telegramkt.model.chat.administrator.ChatPermissionsBuilder
 import io.telegramkt.model.chat.invite.ChatInviteLink
+import io.telegramkt.model.chat.member.ChatMember
 import io.telegramkt.model.checklist.input.InputChecklist
 import io.telegramkt.model.contact.Contact
 import io.telegramkt.model.contact.ContactRequestBuilder
 import io.telegramkt.model.file.File
 import io.telegramkt.model.file.input.InputFile
+import io.telegramkt.model.forum.ForumTopic
+import io.telegramkt.model.forum.topic.TopicIconColor
 import io.telegramkt.model.keyboard.reply.InlineKeyboardMarkup
 import io.telegramkt.model.keyboard.reply.ReplyMarkup
 import io.telegramkt.model.keyboard.reply.parameters.ReplyParameters
@@ -45,6 +48,7 @@ import io.telegramkt.model.poll.input.InputPollOption
 import io.telegramkt.model.poll.input.PollOptionsBuilder
 import io.telegramkt.model.reaction.ReactionBuilder
 import io.telegramkt.model.reaction.ReactionType
+import io.telegramkt.model.sticker.Sticker
 import io.telegramkt.model.suggested.SuggestedPostParameters
 import io.telegramkt.model.update.Update
 import io.telegramkt.model.user.User
@@ -1588,6 +1592,147 @@ class TelegramBotClient(
 
     // ===== Get chat method. =====
     override suspend fun getChat(chatId: ChatId): ChatFullInfo = call("getChat") {
+        parameter("chat_id", chatId.toApiParam())
+    }
+
+    // ===== Get chat administrators method. =====
+    override suspend fun getChatAdministrators(chatId: ChatId): List<ChatMember>
+        = call("getChatAdministrators") {
+        parameter("chat_id", chatId.toApiParam())
+    }
+
+    // ===== Get chat member and chat member count methods. =====
+    override suspend fun getChatMemberCount(chatId: ChatId): Int = call("getChatMemberCount") {
+        parameter("chat_id", chatId.toApiParam())
+    }
+
+    override suspend fun getChatMember(
+        chatId: ChatId,
+        userId: Long
+    ): ChatMember = call("getChatMember") {
+        parameter("chat_id", chatId.toApiParam())
+        parameter("user_id", userId)
+    }
+
+    // ===== Set and delete chat sticker set methods. =====
+    override suspend fun setChatStickerSet(
+        chatId: ChatId,
+        stickerSetName: String
+    ): Boolean = call("setChatStickerSet") {
+        parameter("chat_id", chatId.toApiParam())
+        parameter("sticker_set_name", stickerSetName)
+    }
+
+    override suspend fun deleteChatStickerSet(chatId: ChatId): Boolean = call("deleteChatStickerSet") {
+        parameter("chat_id", chatId.toApiParam())
+    }
+
+    // ===== Get forum topic icon stickers method. =====
+    override suspend fun getForumTopicIconStickers(): List<Sticker> = call("getForumTopicIconStickers")
+
+    // ===== Create/edit/close/reopen/delete forum topic methods. =====
+
+    override suspend fun createForumTopic(
+        chatId: ChatId,
+        name: String,
+        iconColor: TopicIconColor?,
+        iconCustomEmojiId: String?
+    ): ForumTopic {
+        require(name.length in 0..128) { "Topic name must be between 0 and 128 characters." }
+
+        return call("createForumTopic") {
+            parameter("chat_id", chatId.toApiParam())
+            parameter("name", name)
+            parameter("icon_color", iconColor)
+            parameter("icon_custom_emoji_id", iconCustomEmojiId)
+        }
+    }
+
+    override suspend fun editForumTopic(
+        chatId: ChatId,
+        messageThreadId: Int,
+        name: String?,
+        iconCustomEmojiId: String?
+    ): Boolean {
+        if (name != null) {
+            require(name.length in 0..128) { "Topic name must be between 0 and 128 characters." }
+        }
+
+        return call("editForumTopic") {
+            parameter("chat_id", chatId.toApiParam())
+            parameter("message_thread_id", messageThreadId)
+            parameter("name", name)
+            parameter("icon_custom_emoji_id", iconCustomEmojiId)
+        }
+    }
+
+    override suspend fun closeForumTopic(
+        chatId: ChatId,
+        messageThreadId: Int
+    ): Boolean = call("closeForumTopic") {
+        parameter("chat_id", chatId.toApiParam())
+        parameter("message_thread_id", messageThreadId)
+    }
+
+    override suspend fun reopenForumTopic(
+        chatId: ChatId,
+        messageThreadId: Int
+    ): Boolean = call("reopenForumTopic") {
+        parameter("chat_id", chatId.toApiParam())
+        parameter("message_thread_id", messageThreadId)
+    }
+
+    override suspend fun deleteForumTopic(
+        chatId: ChatId,
+        messageThreadId: Int
+    ): Boolean = call("deleteForumTopic") {
+        parameter("chat_id", chatId.toApiParam())
+        parameter("message_thread_id", messageThreadId)
+    }
+
+
+    // ===== Unpin all forum topic messages method. =====
+    override suspend fun unpinAllForumTopicMessages(
+        chatId: ChatId,
+        messageThreadId: Int
+    ): Boolean = call("unpinAllForumTopicMessages") {
+        parameter("chat_id", chatId.toApiParam())
+        parameter("message_thread_id", messageThreadId)
+    }
+
+    // ===== Edit/close/hide/unhide general forum topic methods. =====
+
+    override suspend fun editGeneralForumTopic(
+        chatId: ChatId,
+        name: String
+    ): Boolean {
+        require(name.length in 0..128) { "Topic name must be between 0 and 128 characters." }
+
+        return call("editGeneralForumTopic") {
+            parameter("chat_id", chatId.toApiParam())
+            parameter("name", name)
+        }
+    }
+
+    override suspend fun closeGeneralForumTopic(chatId: ChatId): Boolean = call("closeGeneralForumTopic") {
+        parameter("chat_id", chatId.toApiParam())
+    }
+
+    override suspend fun reopenGeneralForumTopic(chatId: ChatId): Boolean = call("reopenGeneralForumTopic") {
+        parameter("chat_id", chatId.toApiParam())
+    }
+
+    override suspend fun hideGeneralForumTopic(chatId: ChatId): Boolean = call("hideGeneralForumTopic") {
+        parameter("chat_id", chatId.toApiParam())
+    }
+
+    override suspend fun unhideGeneralForumTopic(chatId: ChatId): Boolean = call("unhideGeneralForumTopic") {
+        parameter("chat_id", chatId.toApiParam())
+    }
+
+    // ===== Unpin all general forum topic messages method. =====
+    override suspend fun unpinAllGeneralForumTopicMessages(chatId: ChatId): Boolean
+        = call("unpinAllGeneralForumTopicMessages") {
         parameter("chat_id", chatId.toApiParam())
     }
 

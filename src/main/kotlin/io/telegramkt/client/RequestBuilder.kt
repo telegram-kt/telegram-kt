@@ -7,6 +7,7 @@ import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
 import io.telegramkt.model.ParseMode
 import io.telegramkt.model.file.input.InputFile
+import io.telegramkt.model.forum.topic.TopicIconColor
 import io.telegramkt.model.media.input.AlbumableMedia
 import io.telegramkt.model.media.input.InputMediaAudio
 import io.telegramkt.model.media.input.InputMediaDocument
@@ -58,6 +59,7 @@ internal fun Json.buildJsonBody(params: Map<String, Any?>): JsonObject =
                 }
                 is Instant -> JsonPrimitive(value.epochSeconds)
                 is Duration -> JsonPrimitive(value.inWholeSeconds)
+                is TopicIconColor -> JsonPrimitive(value.rgb)
                 else -> encodeToJsonElement(value)
             }
             put(key, element)
