@@ -17,6 +17,11 @@ import io.telegramkt.exception.TelegramNetworkException
 import io.telegramkt.exception.TelegramRateLimitException
 import io.telegramkt.json.TelegramJson
 import io.telegramkt.model.ParseMode
+import io.telegramkt.model.bot.command.BotCommand
+import io.telegramkt.model.bot.command.BotCommandScope
+import io.telegramkt.model.bot.command.BotCommandsBuilder
+import io.telegramkt.model.bot.command.botCommands
+import io.telegramkt.model.business.BusinessConnection
 import io.telegramkt.model.chat.ChatFullInfo
 import io.telegramkt.model.chat.ChatId
 import io.telegramkt.model.chat.action.ChatAction
@@ -52,6 +57,7 @@ import io.telegramkt.model.sticker.Sticker
 import io.telegramkt.model.suggested.SuggestedPostParameters
 import io.telegramkt.model.update.Update
 import io.telegramkt.model.user.User
+import io.telegramkt.model.user.boost.UserChatBoosts
 import io.telegramkt.model.user.profile.UserProfileAudios
 import io.telegramkt.model.user.profile.UserProfilePhotos
 import kotlinx.coroutines.delay
@@ -1734,6 +1740,70 @@ class TelegramBotClient(
     override suspend fun unpinAllGeneralForumTopicMessages(chatId: ChatId): Boolean
         = call("unpinAllGeneralForumTopicMessages") {
         parameter("chat_id", chatId.toApiParam())
+    }
+
+    // ===== Get user chat boosts method. =====
+    override suspend fun getUserChatBoosts(
+        chatId: ChatId,
+        userId: Long
+    ): UserChatBoosts = call("getUserChatBoosts") {
+        parameter("chat_id", chatId.toApiParam())
+        parameter("user_id", userId)
+    }
+
+    // ===== Get business connection method. =====
+    override suspend fun getBusinessConnection(businessConnectionId: String): BusinessConnection
+        = call("getBusinessConnection") {
+            parameter("business_connection_id", businessConnectionId)
+    }
+
+    // ===== Get/replace managed bot token methods. =====
+    override suspend fun getManagedBotToken(userId: Long): String = call("getManagedBotToken") {
+        parameter("user_id", userId)
+    }
+
+    override suspend fun replaceManagedBotToken(userId: Long): String = call("replaceManagedBotToken") {
+        parameter("user_id", userId)
+    }
+
+    // ===== Set/get/delete my commands methods. =====
+    override suspend fun setMyCommands(
+        commands: List<BotCommand>,
+        scope: BotCommandScope?,
+        languageCode: String?
+    ): Boolean = call("setMyCommands") {
+        parameter("commands", json.encodeToString(commands))
+        parameter("scope", scope?.let { json.encodeToString(it) })
+        parameter("language_code", languageCode)
+    }
+
+    suspend fun setMyCommands(commands: List<BotCommandsBuilder.ScopedCommands>) {
+        commands.forEach { scoped ->
+            setMyCommands(scoped.commands, scoped.scope, scoped.languageCode)
+        }
+    }
+
+    suspend fun setMyCommands(block: BotCommandsBuilder.() -> Unit) {
+        val configs = botCommands(block)
+        configs.forEach { config ->
+            setMyCommands(config.commands, config.scope, config.languageCode)
+        }
+    }
+
+    override suspend fun deleteMyCommands(
+        scope: BotCommandScope?,
+        languageCode: String?
+    ): Boolean = call("deleteMyCommands") {
+        parameter("scope", scope?.let { json.encodeToString(it) })
+        parameter("language_code", languageCode)
+    }
+
+    override suspend fun getMyCommands(
+        scope: BotCommandScope?,
+        languageCode: String?
+    ): List<BotCommand> = call("getMyCommands") {
+        parameter("scope", scope?.let { json.encodeToString(it) })
+        parameter("language_code", languageCode)
     }
 
     fun updatesFlow(

@@ -1,6 +1,9 @@
 package io.telegramkt.api
 
 import io.telegramkt.model.ParseMode
+import io.telegramkt.model.bot.command.BotCommand
+import io.telegramkt.model.bot.command.BotCommandScope
+import io.telegramkt.model.business.BusinessConnection
 import io.telegramkt.model.chat.ChatFullInfo
 import io.telegramkt.model.chat.ChatId
 import io.telegramkt.model.chat.action.ChatAction
@@ -26,6 +29,7 @@ import io.telegramkt.model.sticker.Sticker
 import io.telegramkt.model.suggested.SuggestedPostParameters
 import io.telegramkt.model.update.Update
 import io.telegramkt.model.user.User
+import io.telegramkt.model.user.boost.UserChatBoosts
 import io.telegramkt.model.user.profile.UserProfileAudios
 import io.telegramkt.model.user.profile.UserProfilePhotos
 import kotlin.time.Duration
@@ -994,4 +998,36 @@ interface TelegramApi {
     suspend fun unhideGeneralForumTopic(chatId: ChatId): Boolean
 
     suspend fun unpinAllGeneralForumTopicMessages(chatId: ChatId): Boolean
+
+    // ==================== User chat boosts. ====================
+    suspend fun getUserChatBoosts(
+        chatId: ChatId,
+        userId: Long,
+    ): UserChatBoosts
+
+    // ==================== Business connection. ====================
+    suspend fun getBusinessConnection(businessConnectionId: String): BusinessConnection
+
+    // ==================== Managed bot token. ====================
+    suspend fun getManagedBotToken(userId: Long): String
+
+    suspend fun replaceManagedBotToken(userId: Long): String
+
+    // ==================== Bot commands. ====================
+
+    suspend fun setMyCommands(
+        commands: List<BotCommand>,
+        scope: BotCommandScope? = null,
+        languageCode: String? = null,
+    ): Boolean
+
+    suspend fun deleteMyCommands(
+        scope: BotCommandScope? = null,
+        languageCode: String? = null,
+    ): Boolean
+
+    suspend fun getMyCommands(
+        scope: BotCommandScope? = null,
+        languageCode: String? = null,
+    ): List<BotCommand>
 }
