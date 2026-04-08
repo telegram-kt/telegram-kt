@@ -5,6 +5,8 @@ import io.ktor.client.call.body
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.engine.cio.endpoint
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.plugins.logging.LogLevel
+import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
@@ -21,6 +23,9 @@ import io.telegramkt.model.bot.command.BotCommand
 import io.telegramkt.model.bot.command.BotCommandScope
 import io.telegramkt.model.bot.command.BotCommandsBuilder
 import io.telegramkt.model.bot.command.botCommands
+import io.telegramkt.model.bot.description.BotDescription
+import io.telegramkt.model.bot.description.BotShortDescription
+import io.telegramkt.model.bot.name.BotName
 import io.telegramkt.model.business.BusinessConnection
 import io.telegramkt.model.chat.ChatFullInfo
 import io.telegramkt.model.chat.ChatId
@@ -45,6 +50,8 @@ import io.telegramkt.model.location.builder.LocationRequestBuilder
 import io.telegramkt.model.location.builder.VenueRequestBuilder
 import io.telegramkt.model.media.input.MediaGroupBuilder
 import io.telegramkt.model.media.input.AlbumableMedia
+import io.telegramkt.model.media.input.InputProfilePhoto
+import io.telegramkt.model.media.input.InputProfilePhotoBuilder
 import io.telegramkt.model.message.Message
 import io.telegramkt.model.message.MessageId
 import io.telegramkt.model.message.entity.MessageEntity
@@ -87,6 +94,10 @@ class TelegramBotClient(
         install(ContentNegotiation) {
             json(json)
         }
+        // Uncomment for logging.
+//        install(Logging) {
+//            level = LogLevel.ALL
+//        }
     }
 
     private val baseUrl: String get() = "$apiUrl/bot$token"
@@ -1805,6 +1816,80 @@ class TelegramBotClient(
         parameter("scope", scope?.let { json.encodeToString(it) })
         parameter("language_code", languageCode)
     }
+
+    // ===== Set/get my name methods. =====
+    override suspend fun setMyName(name: String, languageCode: String?): Boolean {
+        if (languageCode.isNullOrEmpty()) require(name.length in 0..64) { "Name must be between 0 and 64 characters." }
+        else require(name.length in 1..64) {
+            "Name with language code must be between 0 and 64 characters(0 for delete name for this language code)."
+        }
+
+        return call("setMyName") {
+            parameter("name", name)
+            parameter("language_code", languageCode)
+        }
+    }
+
+    override suspend fun getMyName(languageCode: String?): BotName = call("getMyName") {
+        parameter("language_code", languageCode)
+    }
+
+    // ===== Set/get my description methods. =====
+    override suspend fun setMyDescription(description: String, languageCode: String?): Boolean {
+        if (languageCode.isNullOrEmpty()) require(description.length in 0..512) {
+            "Description must be between 0 and 512 characters."
+        }
+        else require(description.length in 1..512) {
+            "Description with language code must be between 0 and 512 characters(0 for delete name for this language code)."
+        }
+
+        return call("setMyDescription") {
+            parameter("description", description)
+            parameter("language_code", languageCode)
+        }
+    }
+
+    override suspend fun getMyDescription(languageCode: String?): BotDescription = call("getMyDescription") {
+        parameter("language_code", languageCode)
+    }
+
+    // ===== Set/get my short description methods. =====
+
+    override suspend fun setMyShortDescription(
+        shortDescription: String,
+        languageCode: String?
+    ): Boolean {
+        if (languageCode.isNullOrEmpty()) require(shortDescription.length in 0..120) {
+            "Short description must be between 0 and 120 characters."
+        }
+        else require(shortDescription.length in 1..120) {
+            "Short description with language code must be between 0 and 120 characters(0 for delete name for this language code)."
+        }
+
+        return call("setMyShortDescription") {
+            parameter("short_description", shortDescription)
+            parameter("language_code", languageCode)
+        }
+    }
+
+    override suspend fun getMyShortDescription(languageCode: String?): BotShortDescription
+        = call("getMyShortDescription") {
+        parameter("language_code", languageCode)
+    }
+
+    // ===== Set/remove my profile photo methods. =====
+
+    override suspend fun setMyProfilePhoto(photo: InputProfilePhoto): Boolean
+        = call("setMyProfilePhoto") {
+            parameter("photo", photo)
+    }
+
+    suspend fun setMyProfilePhoto(block: InputProfilePhotoBuilder.() -> Unit): Boolean {
+        val builder = InputProfilePhotoBuilder().apply(block)
+        return setMyProfilePhoto(builder.build())
+    }
+
+    override suspend fun removeMyProfilePhoto(): Boolean = call("removeMyProfilePhoto")
 
     fun updatesFlow(
         limit: Int = 100,

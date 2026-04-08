@@ -3,9 +3,10 @@ package io.telegramkt.client
 import io.ktor.client.request.forms.FormBuilder
 import io.ktor.client.request.forms.MultiPartFormDataContent
 import io.ktor.client.request.forms.formData
+import io.ktor.http.ContentType
 import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
-import io.telegramkt.model.ParseMode
+import io.ktor.http.fromFilePath
 import io.telegramkt.model.file.input.InputFile
 import io.telegramkt.model.forum.topic.TopicIconColor
 import io.telegramkt.model.media.input.AlbumableMedia
@@ -13,12 +14,14 @@ import io.telegramkt.model.media.input.InputMediaAudio
 import io.telegramkt.model.media.input.InputMediaDocument
 import io.telegramkt.model.media.input.InputMediaPhoto
 import io.telegramkt.model.media.input.InputMediaVideo
+import io.telegramkt.model.media.input.InputProfilePhoto
 import io.telegramkt.model.media.paid.InputPaidMedia
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.encodeToJsonElement
+import kotlinx.serialization.json.put
 import kotlin.random.Random
 import kotlin.time.Duration
 import kotlin.time.Instant
@@ -27,6 +30,13 @@ internal fun Map<String, Any?>.hasBinaryFiles(): Boolean =
     values.any { value ->
         when (value) {
             is InputFile -> value !is InputFile.StringValue
+            is InputProfilePhoto -> {
+                val file = when(value) {
+                    is InputProfilePhoto.Static -> value.photo
+                    is InputProfilePhoto.Animated -> value.animation
+                }
+                file !is InputFile.StringValue
+            }
             is List<*> -> value.any { item ->
                 (item is AlbumableMedia && item.media !is InputFile.StringValue) ||
                         (item is InputPaidMedia && item.media !is InputFile.StringValue)
@@ -45,6 +55,7 @@ internal fun Json.buildJsonBody(params: Map<String, Any?>): JsonObject =
                 is Number -> JsonPrimitive(value)
                 is Boolean -> JsonPrimitive(value)
                 is InputFile.StringValue -> JsonPrimitive(value.value)
+                is InputProfilePhoto -> encodeToJsonElement(value)
                 is List<*> -> {
                     when {
                         value.filterIsInstance<AlbumableMedia>().isNotEmpty() ->
@@ -80,6 +91,7 @@ private fun FormBuilder.appendParameter(json: Json, key: String, value: Any?) {
         is InputFile.ByteArrayValue -> appendBinary(key, value.bytes, value.fileName)
         is List<*> -> appendList(json, key, value)
         is InputFile.StringValue -> append(key, value.value)
+        is InputProfilePhoto -> appendInputProfilePhoto(json, key, value)
         is String -> append(key, value)
         is Number -> append(key, value.toString())
         is Boolean -> append(key, value.toString())
@@ -87,9 +99,48 @@ private fun FormBuilder.appendParameter(json: Json, key: String, value: Any?) {
     }
 }
 
+private fun FormBuilder.appendInputProfilePhoto(json: Json, key: String, photo: InputProfilePhoto) {
+    val (file, type) = when (photo) {
+        is InputProfilePhoto.Static -> photo.photo to "static"
+        is InputProfilePhoto.Animated -> photo.animation to "animated"
+    }
+
+    val attachName = "profile_photo_${Random.nextInt(10000)}"
+
+    when (file) {
+        is InputFile.PathValue -> appendBinary(attachName, file.readBytes(), file.fileName)
+        is InputFile.ByteArrayValue -> appendBinary(attachName, file.bytes, file.fileName)
+        is InputFile.StringValue -> {
+            val photoJson = buildJsonObject {
+                put("type", type)
+                put("photo", file.value)
+            }
+            append(key, json.encodeToString(photoJson))
+            return
+        }
+    }
+
+    val photoJson = buildJsonObject {
+        put("type", type)
+        when (photo) {
+            is InputProfilePhoto.Static -> put("photo", "attach://$attachName")
+            is InputProfilePhoto.Animated -> {
+                put("animation", "attach://$attachName")
+                photo.mainFrameTimestamp?.let { put("main_frame_timestamp", it.toDouble()) }
+            }
+        }
+    }
+
+    append(key, json.encodeToString(photoJson))
+}
+
 private fun FormBuilder.appendBinary(key: String, bytes: ByteArray, fileName: String) {
     append(key, bytes, Headers.build {
         append(HttpHeaders.ContentDisposition, "filename=\"$fileName\"")
+
+        val contentType = ContentType.fromFilePath(fileName).firstOrNull()
+            ?: ContentType.Application.OctetStream
+        append(HttpHeaders.ContentType, contentType.toString())
     })
 }
 

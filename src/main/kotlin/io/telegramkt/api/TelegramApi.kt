@@ -3,6 +3,9 @@ package io.telegramkt.api
 import io.telegramkt.model.ParseMode
 import io.telegramkt.model.bot.command.BotCommand
 import io.telegramkt.model.bot.command.BotCommandScope
+import io.telegramkt.model.bot.description.BotDescription
+import io.telegramkt.model.bot.description.BotShortDescription
+import io.telegramkt.model.bot.name.BotName
 import io.telegramkt.model.business.BusinessConnection
 import io.telegramkt.model.chat.ChatFullInfo
 import io.telegramkt.model.chat.ChatId
@@ -19,6 +22,7 @@ import io.telegramkt.model.keyboard.reply.InlineKeyboardMarkup
 import io.telegramkt.model.keyboard.reply.ReplyMarkup
 import io.telegramkt.model.keyboard.reply.parameters.ReplyParameters
 import io.telegramkt.model.media.input.AlbumableMedia
+import io.telegramkt.model.media.input.InputProfilePhoto
 import io.telegramkt.model.message.Message
 import io.telegramkt.model.message.MessageId
 import io.telegramkt.model.message.entity.MessageEntity
@@ -744,7 +748,7 @@ interface TelegramApi {
      * After getting file_path, download via:
      * `https://api.telegram.org/file/bot<token>/<file_path>`
      */
-    suspend fun getFile(fileId: String) : File
+    suspend fun getFile(fileId: String): File
 
     // ==================== Admin Actions. ====================
     // ==================== Ban/unban chat members. ====================
@@ -1030,4 +1034,33 @@ interface TelegramApi {
         scope: BotCommandScope? = null,
         languageCode: String? = null,
     ): List<BotCommand>
+
+    // ==================== Bot name, description and photo. ====================
+
+    suspend fun setMyName(
+        name: String,
+        languageCode: String? = null,
+    ): Boolean
+
+    suspend fun getMyName(languageCode: String? = null): BotName
+
+    suspend fun setMyDescription(
+        description: String,
+        languageCode: String? = null,
+    ): Boolean
+
+    suspend fun getMyDescription(languageCode: String? = null): BotDescription
+
+    suspend fun setMyShortDescription(
+        shortDescription: String,
+        languageCode: String? = null,
+    ): Boolean
+
+    suspend fun getMyShortDescription(languageCode: String? = null): BotShortDescription
+
+    suspend fun setMyProfilePhoto(
+        photo: InputProfilePhoto
+    ): Boolean
+
+    suspend fun removeMyProfilePhoto(): Boolean
 }
