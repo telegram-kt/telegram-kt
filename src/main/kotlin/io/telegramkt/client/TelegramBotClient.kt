@@ -41,6 +41,7 @@ import io.telegramkt.model.file.File
 import io.telegramkt.model.file.input.InputFile
 import io.telegramkt.model.forum.ForumTopic
 import io.telegramkt.model.forum.topic.TopicIconColor
+import io.telegramkt.model.gift.Gifts
 import io.telegramkt.model.keyboard.reply.InlineKeyboardMarkup
 import io.telegramkt.model.keyboard.reply.ReplyMarkup
 import io.telegramkt.model.keyboard.reply.parameters.ReplyParameters
@@ -59,6 +60,7 @@ import io.telegramkt.model.message.entity.MessageEntity
 import io.telegramkt.model.poll.PollType
 import io.telegramkt.model.poll.input.InputPollOption
 import io.telegramkt.model.poll.input.PollOptionsBuilder
+import io.telegramkt.model.premium.PremiumSubscriptionPeriod
 import io.telegramkt.model.reaction.ReactionBuilder
 import io.telegramkt.model.reaction.ReactionType
 import io.telegramkt.model.sticker.Sticker
@@ -1957,6 +1959,55 @@ class TelegramBotClient(
     override suspend fun getMyDefaultAdministratorRights(forChannels: Boolean?): ChatAdministratorRights
         = call("getMyDefaultAdministratorRights") {
         parameter("for_channels", forChannels)
+    }
+
+    // ===== Get available gifts and send gift methods. =====
+
+    override suspend fun getAvailableGifts(): Gifts = call("getAvailableGifts")
+
+    override suspend fun sendGift(
+        giftId: String,
+        userId: Long?,
+        chatId: ChatId?,
+        payForUpgrade: Boolean?,
+        text: String?,
+        textParseMode: ParseMode?,
+        textEntities: List<MessageEntity>?
+    ): Boolean {
+        if (!text.isNullOrEmpty()) require(text.length in 0..128) {
+            "Text must be between 0 and 128 characters."
+        }
+
+        return call("sendGift") {
+            parameter("chat_id", chatId)
+            parameter("user_id", userId)
+            parameter("gift_id", giftId)
+            parameter("pay_for_upgrade", payForUpgrade)
+            parameter("text", text)
+            parameter("text_parse_mode", textParseMode)
+            parameter("text_entities", textEntities)
+        }
+    }
+
+    override suspend fun giftPremiumSubscription(
+        userId: Int,
+        period: PremiumSubscriptionPeriod,
+        text: String?,
+        textParseMode: ParseMode?,
+        textEntities: List<MessageEntity>?
+    ): Boolean {
+        if (!text.isNullOrEmpty()) require(text.length in 0..128) {
+            "Text must be between 0 and 128 characters."
+        }
+
+        return call("giftPremiumSubscription") {
+            parameter("user_id", userId)
+            parameter("month_count", period.monthCount)
+            parameter("star_count", period.starCount)
+            parameter("text", text)
+            parameter("text_parse_mode", textParseMode)
+            parameter("text_entities", textEntities)
+        }
     }
 
     fun updatesFlow(

@@ -19,6 +19,7 @@ import io.telegramkt.model.file.File
 import io.telegramkt.model.file.input.InputFile
 import io.telegramkt.model.forum.ForumTopic
 import io.telegramkt.model.forum.topic.TopicIconColor
+import io.telegramkt.model.gift.Gifts
 import io.telegramkt.model.keyboard.reply.InlineKeyboardMarkup
 import io.telegramkt.model.keyboard.reply.ReplyMarkup
 import io.telegramkt.model.keyboard.reply.parameters.ReplyParameters
@@ -30,6 +31,7 @@ import io.telegramkt.model.message.MessageId
 import io.telegramkt.model.message.entity.MessageEntity
 import io.telegramkt.model.poll.PollType
 import io.telegramkt.model.poll.input.InputPollOption
+import io.telegramkt.model.premium.PremiumSubscriptionPeriod
 import io.telegramkt.model.reaction.ReactionType
 import io.telegramkt.model.sticker.Sticker
 import io.telegramkt.model.suggested.SuggestedPostParameters
@@ -1087,4 +1089,26 @@ interface TelegramApi {
     suspend fun getMyDefaultAdministratorRights(
         forChannels: Boolean? = null,
     ): ChatAdministratorRights
+
+    // ==================== Gifts. ====================
+
+    suspend fun getAvailableGifts(): Gifts
+
+    suspend fun sendGift(
+        giftId: String,
+        userId: Long? = null,
+        chatId: ChatId? = null,
+        payForUpgrade: Boolean? = null,
+        text: String? = null,
+        textParseMode: ParseMode? = null,
+        textEntities: List<MessageEntity>? = null,
+    ): Boolean
+
+    suspend fun giftPremiumSubscription(
+        userId: Int,
+        period: PremiumSubscriptionPeriod,
+        text: String? = null,
+        textParseMode: ParseMode? = null,
+        textEntities: List<MessageEntity>? = null,
+    ): Boolean
 }
