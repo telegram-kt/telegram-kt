@@ -10,6 +10,7 @@ import io.telegramkt.model.business.BusinessConnection
 import io.telegramkt.model.chat.ChatFullInfo
 import io.telegramkt.model.chat.ChatId
 import io.telegramkt.model.chat.action.ChatAction
+import io.telegramkt.model.chat.administrator.ChatAdministratorRights
 import io.telegramkt.model.chat.administrator.ChatPermissions
 import io.telegramkt.model.chat.invite.ChatInviteLink
 import io.telegramkt.model.chat.member.ChatMember
@@ -23,6 +24,7 @@ import io.telegramkt.model.keyboard.reply.ReplyMarkup
 import io.telegramkt.model.keyboard.reply.parameters.ReplyParameters
 import io.telegramkt.model.media.input.AlbumableMedia
 import io.telegramkt.model.media.input.InputProfilePhoto
+import io.telegramkt.model.menu.button.MenuButton
 import io.telegramkt.model.message.Message
 import io.telegramkt.model.message.MessageId
 import io.telegramkt.model.message.entity.MessageEntity
@@ -1063,4 +1065,26 @@ interface TelegramApi {
     ): Boolean
 
     suspend fun removeMyProfilePhoto(): Boolean
+
+    // ==================== Chat menu button. ====================
+
+    suspend fun setChatMenuButton(
+        chatId: Long? = null,
+        menuButton: MenuButton? = null,
+    ): Boolean
+
+    suspend fun getChatMenuButton(
+        chatId: Long? = null,
+    ): MenuButton
+
+    // ==================== Default administrator Rights. ====================
+
+    suspend fun setMyDefaultAdministratorRights(
+        rights: ChatAdministratorRights? = null,
+        forChannels: Boolean? = null,
+    ): Boolean
+
+    suspend fun getMyDefaultAdministratorRights(
+        forChannels: Boolean? = null,
+    ): ChatAdministratorRights
 }

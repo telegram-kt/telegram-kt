@@ -5,8 +5,6 @@ import io.ktor.client.call.body
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.engine.cio.endpoint
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.client.plugins.logging.LogLevel
-import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
@@ -30,6 +28,8 @@ import io.telegramkt.model.business.BusinessConnection
 import io.telegramkt.model.chat.ChatFullInfo
 import io.telegramkt.model.chat.ChatId
 import io.telegramkt.model.chat.action.ChatAction
+import io.telegramkt.model.chat.administrator.ChatAdministratorRights
+import io.telegramkt.model.chat.administrator.ChatAdministratorRightsBuilder
 import io.telegramkt.model.chat.administrator.ChatPermissions
 import io.telegramkt.model.chat.administrator.ChatPermissionsBuilder
 import io.telegramkt.model.chat.invite.ChatInviteLink
@@ -52,6 +52,7 @@ import io.telegramkt.model.media.input.MediaGroupBuilder
 import io.telegramkt.model.media.input.AlbumableMedia
 import io.telegramkt.model.media.input.InputProfilePhoto
 import io.telegramkt.model.media.input.InputProfilePhotoBuilder
+import io.telegramkt.model.menu.button.MenuButton
 import io.telegramkt.model.message.Message
 import io.telegramkt.model.message.MessageId
 import io.telegramkt.model.message.entity.MessageEntity
@@ -1335,9 +1336,6 @@ class TelegramBotClient(
         parameter("can_promote_members", canPromoteMembers)
         parameter("can_change_info", canChangeInfo)
         parameter("can_invite_users", canInviteUsers)
-        parameter("can_change_info", canChangeInfo)
-        parameter("can_invite_users", canInviteUsers)
-        parameter("can_post_stories", canPostStories)
         parameter("can_post_stories", canPostStories)
         parameter("can_edit_stories", canEditStories)
         parameter("can_delete_stories", canDeleteStories)
@@ -1347,6 +1345,41 @@ class TelegramBotClient(
         parameter("can_manage_topics", canManageTopics)
         parameter("can_manage_direct_messages", canManageDirectMessages)
         parameter("can_manage_tags", canManageTags)
+    }
+
+    suspend fun promoteChatMember(
+        chatId: ChatId,
+        userId: Long,
+        chatAdministratorRights: ChatAdministratorRights
+    ): Boolean = promoteChatMember(
+        chatId = chatId,
+        userId = userId,
+        isAnonymous = chatAdministratorRights.isAnonymous,
+        canManageChat = chatAdministratorRights.canManageChat,
+        canDeleteMessages = chatAdministratorRights.canDeleteMessages,
+        canManageVideoChats = chatAdministratorRights.canManageVideoChats,
+        canRestrictMembers = chatAdministratorRights.canRestrictMembers,
+        canPromoteMembers = chatAdministratorRights.canPromoteMembers,
+        canChangeInfo = chatAdministratorRights.canChangeInfo,
+        canInviteUsers = chatAdministratorRights.canInviteUsers,
+        canPostStories = chatAdministratorRights.canPostStories,
+        canEditStories = chatAdministratorRights.canEditStories,
+        canDeleteStories = chatAdministratorRights.canDeleteStories,
+        canPostMessages = chatAdministratorRights.canPostMessages,
+        canEditMessages = chatAdministratorRights.canEditMessages,
+        canPinMessages = chatAdministratorRights.canPinMessages,
+        canManageTopics = chatAdministratorRights.canManageTopics,
+        canManageDirectMessages = chatAdministratorRights.canManageDirectMessages,
+        canManageTags = chatAdministratorRights.canManageTags
+    )
+
+    suspend fun promoteChatMember(
+        chatId: ChatId,
+        userId: Long,
+        block: ChatAdministratorRightsBuilder.() -> Unit = {}
+    ): Boolean {
+        val builder = ChatAdministratorRightsBuilder().apply(block)
+        return promoteChatMember(chatId, userId, builder.build())
     }
 
     // ===== Set chat administrator custom title method. =====
@@ -1890,6 +1923,41 @@ class TelegramBotClient(
     }
 
     override suspend fun removeMyProfilePhoto(): Boolean = call("removeMyProfilePhoto")
+
+    // ===== Set/get chat menu button methods.. =====
+    override suspend fun setChatMenuButton(
+        chatId: Long?,
+        menuButton: MenuButton?
+    ): Boolean = call("setChatMenuButton") {
+        parameter("chat_id", chatId)
+        parameter("menu_button", menuButton)
+    }
+
+    override suspend fun getChatMenuButton(chatId: Long?): MenuButton = call("getChatMenuButton") {
+        parameter("chat_id", chatId)
+    }
+
+    // ===== Set/get my default administrator rights methods.. =====
+    override suspend fun setMyDefaultAdministratorRights(
+        rights: ChatAdministratorRights?,
+        forChannels: Boolean?
+    ): Boolean = call("setMyDefaultAdministratorRights") {
+        parameter("rights", rights)
+        parameter("for_channels", forChannels)
+    }
+
+    suspend fun setMyDefaultAdministratorRights(
+        forChannels: Boolean? = null,
+        block: ChatAdministratorRightsBuilder.() -> Unit = {}
+    ): Boolean {
+        val builder = ChatAdministratorRightsBuilder().apply(block)
+        return setMyDefaultAdministratorRights(builder.build(), forChannels)
+    }
+
+    override suspend fun getMyDefaultAdministratorRights(forChannels: Boolean?): ChatAdministratorRights
+        = call("getMyDefaultAdministratorRights") {
+        parameter("for_channels", forChannels)
+    }
 
     fun updatesFlow(
         limit: Int = 100,

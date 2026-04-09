@@ -19,5 +19,7 @@ data class ChatAdministratorRights(
     @SerialName("can_post_messages") val canPostMessages: Boolean? = null,
     @SerialName("can_edit_messages") val canEditMessages: Boolean? = null,
     @SerialName("can_pin_messages") val canPinMessages: Boolean? = null,
-    @SerialName("can_manage_topics") val canManageTopics: Boolean? = null
+    @SerialName("can_manage_topics") val canManageTopics: Boolean? = null,
+    @SerialName("can_manage_direct_messages") val canManageDirectMessages: Boolean? = null,
+    @SerialName("can_manage_tags") val canManageTags: Boolean? = null,
 )

@@ -7,6 +7,7 @@ import io.ktor.http.ContentType
 import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
 import io.ktor.http.fromFilePath
+import io.telegramkt.model.chat.administrator.ChatAdministratorRights
 import io.telegramkt.model.file.input.InputFile
 import io.telegramkt.model.forum.topic.TopicIconColor
 import io.telegramkt.model.media.input.AlbumableMedia
@@ -16,6 +17,7 @@ import io.telegramkt.model.media.input.InputMediaPhoto
 import io.telegramkt.model.media.input.InputMediaVideo
 import io.telegramkt.model.media.input.InputProfilePhoto
 import io.telegramkt.model.media.paid.InputPaidMedia
+import io.telegramkt.model.menu.button.MenuButton
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -71,6 +73,8 @@ internal fun Json.buildJsonBody(params: Map<String, Any?>): JsonObject =
                 is Instant -> JsonPrimitive(value.epochSeconds)
                 is Duration -> JsonPrimitive(value.inWholeSeconds)
                 is TopicIconColor -> JsonPrimitive(value.rgb)
+                is MenuButton -> encodeToJsonElement(value)
+                is ChatAdministratorRights -> encodeToJsonElement(value)
                 else -> encodeToJsonElement(value)
             }
             put(key, element)
