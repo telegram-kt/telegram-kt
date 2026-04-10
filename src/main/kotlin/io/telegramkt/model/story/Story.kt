@@ -1,4 +1,4 @@
-package io.telegramkt.model.video
+package io.telegramkt.model.story
 
 import io.telegramkt.model.chat.Chat
 import kotlinx.serialization.SerialName

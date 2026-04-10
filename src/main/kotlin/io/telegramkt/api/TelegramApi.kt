@@ -37,12 +37,16 @@ import io.telegramkt.model.premium.PremiumSubscriptionPeriod
 import io.telegramkt.model.reaction.ReactionType
 import io.telegramkt.model.star.StarAmount
 import io.telegramkt.model.sticker.Sticker
+import io.telegramkt.model.story.InputStoryContent
 import io.telegramkt.model.suggested.SuggestedPostParameters
 import io.telegramkt.model.update.Update
 import io.telegramkt.model.user.User
 import io.telegramkt.model.user.boost.UserChatBoosts
 import io.telegramkt.model.user.profile.UserProfileAudios
 import io.telegramkt.model.user.profile.UserProfilePhotos
+import io.telegramkt.model.story.Story
+import io.telegramkt.model.story.StoryActivePeriod
+import io.telegramkt.model.story.area.StoryArea
 import kotlin.time.Duration
 import kotlin.time.Instant
 
@@ -1245,5 +1249,43 @@ interface TelegramApi {
         ownedGiftId: String,
         newOwnerChatId: Long,
         starCount: Int? = null,
+    ): Boolean
+
+    // ==================== Stories. ====================
+
+    suspend fun postStory(
+        businessConnectionId: String,
+        content: InputStoryContent,
+        activePeriod: StoryActivePeriod,
+        caption: String? = null,
+        parseMode: ParseMode? = null,
+        captionEntities: List<MessageEntity>? = null,
+        areas: List<StoryArea>? = null,
+        postToChatPage: Boolean? = null,
+        protectContent: Boolean? = null,
+    ): Story
+
+    suspend fun repostStory(
+        businessConnectionId: String,
+        fromChatId: Long,
+        fromStoryId: Int,
+        activePeriod: StoryActivePeriod,
+        postToChatPage: Boolean? = null,
+        protectContent: Boolean? = null,
+    ): Story
+
+    suspend fun editStory(
+        businessConnectionId: String,
+        storyId: Int,
+        content: InputStoryContent,
+        caption: String? = null,
+        parseMode: ParseMode? = null,
+        captionEntities: List<MessageEntity>? = null,
+        areas: List<StoryArea>? = null,
+    ): Story
+
+    suspend fun deleteStory(
+        businessConnectionId: String,
+        storyId: Int,
     ): Boolean
 }

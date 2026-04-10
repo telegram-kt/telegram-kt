@@ -67,6 +67,11 @@ import io.telegramkt.model.reaction.ReactionBuilder
 import io.telegramkt.model.reaction.ReactionType
 import io.telegramkt.model.star.StarAmount
 import io.telegramkt.model.sticker.Sticker
+import io.telegramkt.model.story.InputStoryContent
+import io.telegramkt.model.story.InputStoryContentBuilder
+import io.telegramkt.model.story.Story
+import io.telegramkt.model.story.StoryActivePeriod
+import io.telegramkt.model.story.area.StoryArea
 import io.telegramkt.model.suggested.SuggestedPostParameters
 import io.telegramkt.model.update.Update
 import io.telegramkt.model.user.User
@@ -2329,6 +2334,128 @@ class TelegramBotClient(
         parameter("owned_gift_id", ownedGiftId)
         parameter("new_owner_chat_id", newOwnerChatId)
         parameter("star_count", starCount)
+    }
+
+    // ===== Post/repost/edit/delete story methods. =====
+
+    override suspend fun postStory(
+        businessConnectionId: String,
+        content: InputStoryContent,
+        activePeriod: StoryActivePeriod,
+        caption: String?,
+        parseMode: ParseMode?,
+        captionEntities: List<MessageEntity>?,
+        areas: List<StoryArea>?,
+        postToChatPage: Boolean?,
+        protectContent: Boolean?
+    ): Story {
+        if (!caption.isNullOrEmpty()) require(caption.length in 0..2048) {
+            "Caption must be between 0 and 2048 characters."
+        }
+
+        return call("postStory") {
+            parameter("business_connection_id", businessConnectionId)
+            parameter("content", content)
+            parameter("active_period", activePeriod)
+            parameter("caption", caption)
+            parameter("parse_mode", parseMode)
+            parameter("caption_entities", captionEntities)
+            parameter("areas", areas)
+            parameter("post_to_chat_page", postToChatPage)
+            parameter("protect_content", protectContent)
+        }
+    }
+
+    suspend fun postStory(
+        businessConnectionId: String,
+        activePeriod: StoryActivePeriod,
+        caption: String? = null,
+        parseMode: ParseMode? = null,
+        captionEntities: List<MessageEntity>? = null,
+        areas: List<StoryArea>? = null,
+        postToChatPage: Boolean? = null,
+        protectContent: Boolean? = null,
+        block: InputStoryContentBuilder.() -> Unit = {}
+    ): Story {
+        val builder = InputStoryContentBuilder().apply(block)
+        return postStory(
+            businessConnectionId = businessConnectionId,
+            content = builder.build(),
+            activePeriod = activePeriod,
+            caption = caption,
+            parseMode = parseMode,
+            captionEntities = captionEntities,
+            areas = areas,
+            postToChatPage = postToChatPage,
+            protectContent = protectContent,
+        )
+    }
+
+    override suspend fun repostStory(
+        businessConnectionId: String,
+        fromChatId: Long,
+        fromStoryId: Int,
+        activePeriod: StoryActivePeriod,
+        postToChatPage: Boolean?,
+        protectContent: Boolean?
+    ): Story = call("repostStory") {
+        parameter("business_connection_id", businessConnectionId)
+        parameter("from_chat_id", fromChatId)
+        parameter("from_story_id", fromStoryId)
+        parameter("active_period", activePeriod)
+        parameter("post_to_chat_page", postToChatPage)
+        parameter("protect_content", protectContent)
+    }
+
+    override suspend fun editStory(
+        businessConnectionId: String,
+        storyId: Int,
+        content: InputStoryContent,
+        caption: String?,
+        parseMode: ParseMode?,
+        captionEntities: List<MessageEntity>?,
+        areas: List<StoryArea>?
+    ): Story {
+        if (!caption.isNullOrEmpty()) require(caption.length in 0..2048) {
+            "Caption must be between 0 and 2048 characters."
+        }
+
+        return call("postStory") {
+            parameter("business_connection_id", businessConnectionId)
+            parameter("story_id", storyId)
+            parameter("content", content)
+            parameter("caption", caption)
+            parameter("parse_mode", parseMode)
+            parameter("caption_entities", captionEntities)
+            parameter("areas", areas)
+        }
+    }
+
+    suspend fun editStory(
+        businessConnectionId: String,
+        storyId: Int,
+        caption: String? = null,
+        parseMode: ParseMode? = null,
+        captionEntities: List<MessageEntity>? = null,
+        areas: List<StoryArea>? = null,
+        block: InputStoryContentBuilder.() -> Unit = {}
+    ): Story {
+        val builder = InputStoryContentBuilder().apply(block)
+        return editStory(
+            businessConnectionId = businessConnectionId,
+            storyId = storyId,
+            content = builder.build(),
+            caption = caption,
+            parseMode = parseMode,
+            captionEntities = captionEntities,
+            areas = areas,
+        )
+    }
+
+    override suspend fun deleteStory(businessConnectionId: String, storyId: Int): Boolean
+        = call("deleteStory") {
+        parameter("business_connection_id", businessConnectionId)
+        parameter("story_id", storyId)
     }
 
     // ===== Business messages. =====

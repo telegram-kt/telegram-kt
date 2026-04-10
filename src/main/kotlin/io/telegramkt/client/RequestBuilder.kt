@@ -18,6 +18,7 @@ import io.telegramkt.model.media.input.InputMediaVideo
 import io.telegramkt.model.media.input.InputProfilePhoto
 import io.telegramkt.model.media.paid.InputPaidMedia
 import io.telegramkt.model.menu.button.MenuButton
+import io.telegramkt.model.story.InputStoryContent
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -36,6 +37,13 @@ internal fun Map<String, Any?>.hasBinaryFiles(): Boolean =
                 val file = when(value) {
                     is InputProfilePhoto.Static -> value.photo
                     is InputProfilePhoto.Animated -> value.animation
+                }
+                file !is InputFile.StringValue
+            }
+            is InputStoryContent -> {
+                val file = when (value) {
+                    is InputStoryContent.Photo -> value.photo
+                    is InputStoryContent.Video -> value.video
                 }
                 file !is InputFile.StringValue
             }
@@ -96,6 +104,7 @@ private fun FormBuilder.appendParameter(json: Json, key: String, value: Any?) {
         is List<*> -> appendList(json, key, value)
         is InputFile.StringValue -> append(key, value.value)
         is InputProfilePhoto -> appendInputProfilePhoto(json, key, value)
+        is InputStoryContent -> appendInputStoryContent(json, key, value)
         is String -> append(key, value)
         is Number -> append(key, value.toString())
         is Boolean -> append(key, value.toString())
@@ -136,6 +145,44 @@ private fun FormBuilder.appendInputProfilePhoto(json: Json, key: String, photo: 
     }
 
     append(key, json.encodeToString(photoJson))
+}
+
+private fun FormBuilder.appendInputStoryContent(json: Json, key: String, content: InputStoryContent) {
+    when (content) {
+        is InputStoryContent.Photo -> appendInputStoryFile(json, key, content.photo, "photo")
+        is InputStoryContent.Video -> {
+            appendInputStoryFile(json, key, content.video, "video")
+
+            val hasOptionalFields = content.duration != null ||
+                    content.coverFrameTimestamp != null ||
+                    content.isAnimation != null
+
+            if (hasOptionalFields) {
+                val contentJson = buildJsonObject {
+                    put("type", "video")
+                    content.duration?.let { put("duration", it.toDouble()) }
+                    content.coverFrameTimestamp?.let { put("cover_frame_timestamp", it.toDouble()) }
+                    content.isAnimation?.let { put("is_animation", it) }
+                }
+                append(key, json.encodeToString(contentJson))
+            }
+        }
+    }
+}
+
+private fun FormBuilder.appendInputStoryFile(json: Json, key: String, file: InputFile, type: String) {
+    val attachName = "story_${type}_${Random.nextInt(10000)}"
+
+    when (file) {
+        is InputFile.PathValue -> appendBinary(attachName, file.readBytes(), file.fileName)
+        is InputFile.ByteArrayValue -> appendBinary(attachName, file.bytes, file.fileName)
+        is InputFile.StringValue -> {
+            append(key, file.value)
+            return
+        }
+    }
+
+    append(key, "attach://$attachName")
 }
 
 private fun FormBuilder.appendBinary(key: String, bytes: ByteArray, fileName: String) {

@@ -41,7 +41,7 @@ import io.telegramkt.model.proximity.ProximityAlertTriggered
 import io.telegramkt.model.sticker.Sticker
 import io.telegramkt.model.user.User
 import io.telegramkt.model.user.shared.UsersShared
-import io.telegramkt.model.video.Story
+import io.telegramkt.model.story.Story
 import io.telegramkt.model.video.Video
 import io.telegramkt.model.video.VideoNote
 import io.telegramkt.model.web.WebAppData
