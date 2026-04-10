@@ -19,7 +19,9 @@ import io.telegramkt.model.file.File
 import io.telegramkt.model.file.input.InputFile
 import io.telegramkt.model.forum.ForumTopic
 import io.telegramkt.model.forum.topic.TopicIconColor
+import io.telegramkt.model.gift.AcceptedGiftTypes
 import io.telegramkt.model.gift.Gifts
+import io.telegramkt.model.gift.owned.OwnedGifts
 import io.telegramkt.model.keyboard.reply.InlineKeyboardMarkup
 import io.telegramkt.model.keyboard.reply.ReplyMarkup
 import io.telegramkt.model.keyboard.reply.parameters.ReplyParameters
@@ -33,6 +35,7 @@ import io.telegramkt.model.poll.PollType
 import io.telegramkt.model.poll.input.InputPollOption
 import io.telegramkt.model.premium.PremiumSubscriptionPeriod
 import io.telegramkt.model.reaction.ReactionType
+import io.telegramkt.model.star.StarAmount
 import io.telegramkt.model.sticker.Sticker
 import io.telegramkt.model.suggested.SuggestedPostParameters
 import io.telegramkt.model.update.Update
@@ -1110,5 +1113,137 @@ interface TelegramApi {
         text: String? = null,
         textParseMode: ParseMode? = null,
         textEntities: List<MessageEntity>? = null,
+    ): Boolean
+
+    // ==================== Verifying users and chats. ====================
+
+    suspend fun verifyUser(
+        userId: Long,
+        customDescription: String? = null,
+    ): Boolean
+
+    suspend fun verifyChat(
+        chatId: ChatId,
+        customDescription: String? = null,
+    ): Boolean
+
+    suspend fun removeUserVerification(userId: Long): Boolean
+
+    suspend fun removeChatVerification(chatId: ChatId): Boolean
+
+    // ==================== Business messages. ====================
+
+    suspend fun readBusinessMessage(
+        businessConnectionId: String,
+        chatId: Long,
+        messageId: Long,
+    ): Boolean
+
+    suspend fun deleteBusinessMessages(
+        businessConnectionId: String,
+        messageIds: List<Long>,
+    ): Boolean
+
+    // ==================== Business account. ====================
+
+    suspend fun setBusinessAccountName(
+        businessConnectionId: String,
+        fistName: String,
+        lastName: String? = null,
+    ): Boolean
+
+    suspend fun setBusinessAccountUsername(
+        businessConnectionId: String,
+        username: String? = null,
+    ): Boolean
+
+    suspend fun setBusinessAccountBio(
+        businessConnectionId: String,
+        bio: String? = null,
+    ): Boolean
+
+    suspend fun setBusinessAccountProfilePhoto(
+        businessConnectionId: String,
+        photo: InputProfilePhoto,
+        isPublic: Boolean? = null,
+    ): Boolean
+
+    suspend fun removeBusinessAccountProfilePhoto(
+        businessConnectionId: String,
+        isPublic: Boolean? = null,
+    ): Boolean
+
+    suspend fun setBusinessAccountGiftSettings(
+        businessConnectionId: String,
+        showGiftButton: Boolean,
+        acceptedGiftTypes: AcceptedGiftTypes,
+    ): Boolean
+
+    suspend fun getBusinessAccountStarBalance(businessConnectionId: String): StarAmount
+
+    suspend fun transferBusinessAccountStars(
+        businessConnectionId: String,
+        starAmount: Int,
+    ): Boolean
+
+    suspend fun getBusinessAccountGifts(
+        businessConnectionId: String,
+        excludeUnsaved: Boolean? = null,
+        excludeSaved: Boolean? = null,
+        excludeUnlimited: Boolean? = null,
+        excludeLimitedUpgradable: Boolean? = null,
+        excludeLimitedNonUpgradable: Boolean? = null,
+        excludeUnique: Boolean? = null,
+        excludeFromBlockchain: Boolean? = null,
+        sortByPrice: Boolean? = null,
+        offset: String? = null,
+        limit: Int? = null,
+    ): OwnedGifts
+
+    // ==================== Work with gifts. ====================
+
+    suspend fun getUserGifts(
+        userId: Long,
+        excludeUnlimited: Boolean? = null,
+        excludeLimitedUpgradable: Boolean? = null,
+        excludeLimitedNonUpgradable: Boolean? = null,
+        excludeFromBlockchain: Boolean? = null,
+        excludeUnique: Boolean? = null,
+        sortByPrice: Boolean? = null,
+        offset: String? = null,
+        limit: Int? = null,
+    ): OwnedGifts
+
+    suspend fun getChatGifts(
+        chatId: ChatId,
+        excludeUnsaved: Boolean? = null,
+        excludeSaved: Boolean? = null,
+        excludeUnlimited: Boolean? = null,
+        excludeLimitedUpgradable: Boolean? = null,
+        excludeLimitedNonUpgradable: Boolean? = null,
+        excludeFromBlockchain: Boolean? = null,
+        excludeUnique: Boolean? = null,
+        sortByPrice: Boolean? = null,
+        offset: String? = null,
+        limit: Int? = null,
+    ): OwnedGifts
+
+    suspend fun convertGiftToStars(
+        businessConnectionId: String,
+        ownedGiftId: String,
+    ): Boolean
+
+    suspend fun upgradeGift(
+        businessConnectionId: String,
+        ownedGiftId: String,
+        keepOriginalDetails: Boolean? = null,
+        starCount: Int? = null,
+    ): Boolean
+
+    suspend fun transferGift(
+        businessConnectionId: String,
+        ownedGiftId: String,
+        newOwnerChatId: Long,
+        starCount: Int? = null,
     ): Boolean
 }

@@ -41,7 +41,9 @@ import io.telegramkt.model.file.File
 import io.telegramkt.model.file.input.InputFile
 import io.telegramkt.model.forum.ForumTopic
 import io.telegramkt.model.forum.topic.TopicIconColor
+import io.telegramkt.model.gift.AcceptedGiftTypes
 import io.telegramkt.model.gift.Gifts
+import io.telegramkt.model.gift.owned.OwnedGifts
 import io.telegramkt.model.keyboard.reply.InlineKeyboardMarkup
 import io.telegramkt.model.keyboard.reply.ReplyMarkup
 import io.telegramkt.model.keyboard.reply.parameters.ReplyParameters
@@ -63,6 +65,7 @@ import io.telegramkt.model.poll.input.PollOptionsBuilder
 import io.telegramkt.model.premium.PremiumSubscriptionPeriod
 import io.telegramkt.model.reaction.ReactionBuilder
 import io.telegramkt.model.reaction.ReactionType
+import io.telegramkt.model.star.StarAmount
 import io.telegramkt.model.sticker.Sticker
 import io.telegramkt.model.suggested.SuggestedPostParameters
 import io.telegramkt.model.update.Update
@@ -463,7 +466,7 @@ class TelegramBotClient(
         suggestedPostParameters: SuggestedPostParameters?,
         replyParameters: ReplyParameters?,
         replyMarkup: ReplyMarkup?
-    ): Message  = call("sendDocument") {
+    ): Message = call("sendDocument") {
         parameter("chat_id", chatId.toApiParam())
         parameter("document", document)
         parameter("business_connection_id", businessConnectionId)
@@ -618,7 +621,7 @@ class TelegramBotClient(
     override suspend fun sendMediaGroup(
         chatId: ChatId,
         media: List<AlbumableMedia>,
-        businessConnectionId: String? ,
+        businessConnectionId: String?,
         messageThreadId: Int?,
         directMessagesTopicId: Int?,
         disableNotification: Boolean?,
@@ -652,8 +655,10 @@ class TelegramBotClient(
         block: MediaGroupBuilder.PhotoVideo.() -> Unit
     ): List<Message> {
         val builder = MediaGroupBuilder.PhotoVideo().apply(block)
-        return sendMediaGroup(chatId, builder.media, businessConnectionId, messageThreadId, directMessagesTopicId,
-            disableNotification, protectContent, allowPaidBroadcast, messageEffectId, replyParameters)
+        return sendMediaGroup(
+            chatId, builder.media, businessConnectionId, messageThreadId, directMessagesTopicId,
+            disableNotification, protectContent, allowPaidBroadcast, messageEffectId, replyParameters
+        )
     }
 
     suspend fun sendDocumentsGroup(
@@ -669,8 +674,10 @@ class TelegramBotClient(
         block: MediaGroupBuilder.Documents.() -> Unit,
     ): List<Message> {
         val builder = MediaGroupBuilder.Documents().apply(block)
-        return sendMediaGroup(chatId, builder.media, businessConnectionId, messageThreadId, directMessagesTopicId,
-            disableNotification, protectContent, allowPaidBroadcast, messageEffectId, replyParameters)
+        return sendMediaGroup(
+            chatId, builder.media, businessConnectionId, messageThreadId, directMessagesTopicId,
+            disableNotification, protectContent, allowPaidBroadcast, messageEffectId, replyParameters
+        )
     }
 
     suspend fun sendAudioGroup(
@@ -686,8 +693,10 @@ class TelegramBotClient(
         block: MediaGroupBuilder.Audio.() -> Unit,
     ): List<Message> {
         val builder = MediaGroupBuilder.Audio().apply(block)
-        return sendMediaGroup(chatId, builder.media, businessConnectionId, messageThreadId, directMessagesTopicId,
-            disableNotification, protectContent, allowPaidBroadcast, messageEffectId, replyParameters)
+        return sendMediaGroup(
+            chatId, builder.media, businessConnectionId, messageThreadId, directMessagesTopicId,
+            disableNotification, protectContent, allowPaidBroadcast, messageEffectId, replyParameters
+        )
     }
 
     // ===== Location methods. =====
@@ -786,9 +795,11 @@ class TelegramBotClient(
         block: LocationRequestBuilder.() -> Unit = {}
     ): Message {
         val builder = LocationRequestBuilder(latitude, longitude).apply(block)
-        return sendLocation(chatId, builder.build(), businessConnectionId, messageThreadId, directMessagesTopicId,
+        return sendLocation(
+            chatId, builder.build(), businessConnectionId, messageThreadId, directMessagesTopicId,
             disableNotification, protectContent, allowPaidBroadcast, messageEffectId, suggestedPostParameters,
-            replyParameters, replyMarkup)
+            replyParameters, replyMarkup
+        )
     }
 
     // ===== Venue methods. =====
@@ -906,9 +917,20 @@ class TelegramBotClient(
         block: VenueRequestBuilder.() -> Unit = {}
     ): Message {
         val builder = VenueRequestBuilder(location, title, address).apply(block)
-        return sendVenue(chatId, builder.build(), businessConnectionId, messageThreadId, directMessagesTopicId,
-            disableNotification, protectContent, allowPaidBroadcast, messageEffectId, suggestedPostParameters, replyParameters,
-            replyMarkup)
+        return sendVenue(
+            chatId,
+            builder.build(),
+            businessConnectionId,
+            messageThreadId,
+            directMessagesTopicId,
+            disableNotification,
+            protectContent,
+            allowPaidBroadcast,
+            messageEffectId,
+            suggestedPostParameters,
+            replyParameters,
+            replyMarkup
+        )
     }
 
     // ===== Contact methods. =====
@@ -959,9 +981,11 @@ class TelegramBotClient(
         suggestedPostParameters: SuggestedPostParameters? = null,
         replyParameters: ReplyParameters? = null,
         replyMarkup: ReplyMarkup? = null
-    ): Message = sendContact(chatId, contact.phoneNumber, contact.firstName, contact.lastName, contact.vCard,
+    ): Message = sendContact(
+        chatId, contact.phoneNumber, contact.firstName, contact.lastName, contact.vCard,
         businessConnectionId, messageThreadId, directMessagesTopicId, disableNotification, protectContent,
-        allowPaidBroadcast, messageEffectId, suggestedPostParameters, replyParameters, replyMarkup)
+        allowPaidBroadcast, messageEffectId, suggestedPostParameters, replyParameters, replyMarkup
+    )
 
     /**
      * Send contact with DSL builder for options.
@@ -990,9 +1014,11 @@ class TelegramBotClient(
         block: ContactRequestBuilder.() -> Unit = {}
     ): Message {
         val builder = ContactRequestBuilder(phoneNumber, firstName).apply(block)
-        return sendContact(chatId, builder.build(), businessConnectionId, messageThreadId, directMessagesTopicId,
+        return sendContact(
+            chatId, builder.build(), businessConnectionId, messageThreadId, directMessagesTopicId,
             disableNotification, protectContent, allowPaidBroadcast, messageEffectId, suggestedPostParameters,
-            replyParameters, replyMarkup)
+            replyParameters, replyMarkup
+        )
     }
 
     // ===== Poll methods. =====
@@ -1146,14 +1172,16 @@ class TelegramBotClient(
         replyMarkup: ReplyMarkup?
     ): Message {
         if (emoji != null && emoji.isNotEmpty()) {
-            require(emoji in listOf(
-                "🎲",
-                "🎯",
-                "🏀",
-                "⚽",
-                "🎳",
-                "🎰"
-            )) { "This emoji is not allowed." }
+            require(
+                emoji in listOf(
+                    "🎲",
+                    "🎯",
+                    "🏀",
+                    "⚽",
+                    "🎳",
+                    "🎰"
+                )
+            ) { "This emoji is not allowed." }
         }
 
         return call("sendDice") {
@@ -1466,7 +1494,7 @@ class TelegramBotClient(
         expireDate: Instant?,
         memberLimit: Int?,
         createsJoinRequest: Boolean?
-    ): ChatInviteLink  {
+    ): ChatInviteLink {
         if (name != null) {
             require(name.length in 0..32) { "Name must be between 0 and 32 characters." }
         }
@@ -1648,8 +1676,7 @@ class TelegramBotClient(
     }
 
     // ===== Get chat administrators method. =====
-    override suspend fun getChatAdministrators(chatId: ChatId): List<ChatMember>
-        = call("getChatAdministrators") {
+    override suspend fun getChatAdministrators(chatId: ChatId): List<ChatMember> = call("getChatAdministrators") {
         parameter("chat_id", chatId.toApiParam())
     }
 
@@ -1783,10 +1810,10 @@ class TelegramBotClient(
     }
 
     // ===== Unpin all general forum topic messages method. =====
-    override suspend fun unpinAllGeneralForumTopicMessages(chatId: ChatId): Boolean
-        = call("unpinAllGeneralForumTopicMessages") {
-        parameter("chat_id", chatId.toApiParam())
-    }
+    override suspend fun unpinAllGeneralForumTopicMessages(chatId: ChatId): Boolean =
+        call("unpinAllGeneralForumTopicMessages") {
+            parameter("chat_id", chatId.toApiParam())
+        }
 
     // ===== Get user chat boosts method. =====
     override suspend fun getUserChatBoosts(
@@ -1798,10 +1825,10 @@ class TelegramBotClient(
     }
 
     // ===== Get business connection method. =====
-    override suspend fun getBusinessConnection(businessConnectionId: String): BusinessConnection
-        = call("getBusinessConnection") {
+    override suspend fun getBusinessConnection(businessConnectionId: String): BusinessConnection =
+        call("getBusinessConnection") {
             parameter("business_connection_id", businessConnectionId)
-    }
+        }
 
     // ===== Get/replace managed bot token methods. =====
     override suspend fun getManagedBotToken(userId: Long): String = call("getManagedBotToken") {
@@ -1907,16 +1934,15 @@ class TelegramBotClient(
         }
     }
 
-    override suspend fun getMyShortDescription(languageCode: String?): BotShortDescription
-        = call("getMyShortDescription") {
-        parameter("language_code", languageCode)
-    }
+    override suspend fun getMyShortDescription(languageCode: String?): BotShortDescription =
+        call("getMyShortDescription") {
+            parameter("language_code", languageCode)
+        }
 
     // ===== Set/remove my profile photo methods. =====
 
-    override suspend fun setMyProfilePhoto(photo: InputProfilePhoto): Boolean
-        = call("setMyProfilePhoto") {
-            parameter("photo", photo)
+    override suspend fun setMyProfilePhoto(photo: InputProfilePhoto): Boolean = call("setMyProfilePhoto") {
+        parameter("photo", photo)
     }
 
     suspend fun setMyProfilePhoto(block: InputProfilePhotoBuilder.() -> Unit): Boolean {
@@ -1956,10 +1982,10 @@ class TelegramBotClient(
         return setMyDefaultAdministratorRights(builder.build(), forChannels)
     }
 
-    override suspend fun getMyDefaultAdministratorRights(forChannels: Boolean?): ChatAdministratorRights
-        = call("getMyDefaultAdministratorRights") {
-        parameter("for_channels", forChannels)
-    }
+    override suspend fun getMyDefaultAdministratorRights(forChannels: Boolean?): ChatAdministratorRights =
+        call("getMyDefaultAdministratorRights") {
+            parameter("for_channels", forChannels)
+        }
 
     // ===== Get available gifts and send gift methods. =====
 
@@ -2009,6 +2035,303 @@ class TelegramBotClient(
             parameter("text_entities", textEntities)
         }
     }
+
+    // ===== Verify/remove verification user/chat methods. =====
+
+    override suspend fun verifyUser(userId: Long, customDescription: String?): Boolean {
+        if (!customDescription.isNullOrEmpty()) require(customDescription.length in 0..70) {
+            "Custom description must be between 0 and 70 characters."
+        }
+
+        return call("verifyUser") {
+            parameter("user_id", userId)
+            parameter("custom_description", customDescription)
+        }
+    }
+
+    override suspend fun verifyChat(
+        chatId: ChatId,
+        customDescription: String?
+    ): Boolean {
+        if (!customDescription.isNullOrEmpty()) require(customDescription.length in 0..70) {
+            "Custom description must be between 0 and 70 characters."
+        }
+
+        return call("verifyChat") {
+            parameter("chat_id", chatId.toApiParam())
+            parameter("custom_description", customDescription)
+        }
+    }
+
+    override suspend fun removeUserVerification(userId: Long): Boolean = call("removeUserVerification") {
+        parameter("user_id", userId)
+    }
+
+    override suspend fun removeChatVerification(chatId: ChatId): Boolean = call("removeChatVerification") {
+        parameter("chat_id", chatId.toApiParam())
+    }
+
+    // ===== Read/delete business messages methods. =====
+
+    override suspend fun readBusinessMessage(
+        businessConnectionId: String,
+        chatId: Long,
+        messageId: Long
+    ): Boolean = call("readBusinessMessage") {
+        parameter("business_connection_id", businessConnectionId)
+        parameter("chat_id", chatId)
+        parameter("message_id", messageId)
+    }
+
+    override suspend fun deleteBusinessMessages(
+        businessConnectionId: String,
+        messageIds: List<Long>
+    ): Boolean {
+        require(messageIds.size in 1..100) {
+            "messageIds must be between 1 and 100 items, got ${messageIds.size}."
+        }
+
+        return call("deleteBusinessMessages") {
+            parameter("business_connection_id", businessConnectionId)
+            parameter("message_ids", messageIds)
+        }
+    }
+
+    // ===== Set business account name/username/bio/photo/gift settings methods. =====
+
+    override suspend fun setBusinessAccountName(
+        businessConnectionId: String,
+        fistName: String,
+        lastName: String?
+    ): Boolean {
+        require(fistName.length in 1..64) {
+            "First name must be between 0 and 64 characters."
+        }
+
+        if (!lastName.isNullOrEmpty()) require(lastName.length in 0..64) {
+            "Last name must be between 1 and 64 characters."
+        }
+
+        return call("setBusinessAccountName") {
+            parameter("business_connection_id", businessConnectionId)
+            parameter("first_name", fistName)
+            parameter("last_name", lastName)
+        }
+    }
+
+    override suspend fun setBusinessAccountUsername(
+        businessConnectionId: String,
+        username: String?
+    ): Boolean {
+        if (!username.isNullOrEmpty()) require(username.length in 0..32) {
+            "Username must be between 0 and 32 characters."
+        }
+
+        return call("setBusinessAccountUsername") {
+            parameter("business_connection_id", businessConnectionId)
+            parameter("username", username)
+        }
+    }
+
+    override suspend fun setBusinessAccountBio(
+        businessConnectionId: String,
+        bio: String?
+    ): Boolean {
+        if (!bio.isNullOrEmpty()) require(bio.length in 0..140) {
+            "Bio must be between 0 and 140 characters."
+        }
+
+        return call("setBusinessAccountBio") {
+            parameter("business_connection_id", businessConnectionId)
+            parameter("bio", bio)
+        }
+    }
+
+    override suspend fun setBusinessAccountProfilePhoto(
+        businessConnectionId: String,
+        photo: InputProfilePhoto,
+        isPublic: Boolean?
+    ): Boolean = call("setBusinessAccountProfilePhoto") {
+        parameter("business_connection_id", businessConnectionId)
+        parameter("photo", photo)
+        parameter("is_public", isPublic)
+    }
+
+    suspend fun setBusinessAccountProfilePhoto(
+        businessConnectionId: String,
+        isPublic: Boolean? = null,
+        block: InputProfilePhotoBuilder.() -> Unit = {}
+    ): Boolean {
+        val builder = InputProfilePhotoBuilder().apply(block)
+        return setBusinessAccountProfilePhoto(
+            businessConnectionId = businessConnectionId,
+            photo = builder.build(),
+            isPublic = isPublic,
+        )
+    }
+
+    override suspend fun removeBusinessAccountProfilePhoto(
+        businessConnectionId: String,
+        isPublic: Boolean?
+    ): Boolean = call("removeBusinessAccountProfilePhoto") {
+        parameter("business_connection_id", businessConnectionId)
+        parameter("is_public", isPublic)
+    }
+
+    override suspend fun setBusinessAccountGiftSettings(
+        businessConnectionId: String,
+        showGiftButton: Boolean,
+        acceptedGiftTypes: AcceptedGiftTypes
+    ): Boolean = call("setBusinessAccountGiftSettings") {
+        parameter("business_connection_id", businessConnectionId)
+        parameter("show_gift_button", showGiftButton)
+        parameter("accepted_gift_types", acceptedGiftTypes)
+    }
+
+    // ===== Get/transfer business account stars methods. =====
+
+    override suspend fun getBusinessAccountStarBalance(businessConnectionId: String): StarAmount
+        = call("getBusinessAccountStarBalance") {
+            parameter("business_connection_id", businessConnectionId)
+    }
+
+    override suspend fun transferBusinessAccountStars(
+        businessConnectionId: String,
+        starAmount: Int
+    ): Boolean = call("transferBusinessAccountStars") {
+        parameter("business_connection_id", businessConnectionId)
+        parameter("star_count", starAmount)
+    }
+
+    // ===== Get business account/user/chat gifts methods. =====
+
+    override suspend fun getBusinessAccountGifts(
+        businessConnectionId: String,
+        excludeUnsaved: Boolean?,
+        excludeSaved: Boolean?,
+        excludeUnlimited: Boolean?,
+        excludeLimitedUpgradable: Boolean?,
+        excludeLimitedNonUpgradable: Boolean?,
+        excludeUnique: Boolean?,
+        excludeFromBlockchain: Boolean?,
+        sortByPrice: Boolean?,
+        offset: String?,
+        limit: Int?
+    ): OwnedGifts {
+        if (limit != null) require(limit in 1..100) {
+            "Limit must be between 1 and 100."
+        }
+
+        return call("getBusinessAccountGifts") {
+            parameter("business_connection_id", businessConnectionId)
+            parameter("exclude_unsaved", excludeUnsaved)
+            parameter("exclude_saved", excludeSaved)
+            parameter("exclude_unlimited", excludeUnlimited)
+            parameter("exclude_limited_upgradable", excludeLimitedUpgradable)
+            parameter("exclude_limited_non_upgradable", excludeLimitedNonUpgradable)
+            parameter("exclude_unique", excludeUnique)
+            parameter("exclude_from_blockchain", excludeFromBlockchain)
+            parameter("sort_by_price", sortByPrice)
+            parameter("offset", offset)
+            parameter("limit", limit)
+        }
+    }
+
+    override suspend fun getUserGifts(
+        userId: Long,
+        excludeUnlimited: Boolean?,
+        excludeLimitedUpgradable: Boolean?,
+        excludeLimitedNonUpgradable: Boolean?,
+        excludeFromBlockchain: Boolean?,
+        excludeUnique: Boolean?,
+        sortByPrice: Boolean?,
+        offset: String?,
+        limit: Int?
+    ): OwnedGifts {
+        if (limit != null) require(limit in 1..100) {
+            "Limit must be between 1 and 100."
+        }
+
+        return call("getUserGifts") {
+            parameter("user_id", userId)
+            parameter("exclude_unlimited", excludeUnlimited)
+            parameter("exclude_limited_upgradable", excludeLimitedUpgradable)
+            parameter("exclude_limited_non_upgradable", excludeLimitedNonUpgradable)
+            parameter("exclude_from_blockchain", excludeFromBlockchain)
+            parameter("exclude_unique", excludeUnique)
+            parameter("sort_by_price", sortByPrice)
+            parameter("offset", offset)
+            parameter("limit", limit)
+        }
+    }
+
+    override suspend fun getChatGifts(
+        chatId: ChatId,
+        excludeUnsaved: Boolean?,
+        excludeSaved: Boolean?,
+        excludeUnlimited: Boolean?,
+        excludeLimitedUpgradable: Boolean?,
+        excludeLimitedNonUpgradable: Boolean?,
+        excludeFromBlockchain: Boolean?,
+        excludeUnique: Boolean?,
+        sortByPrice: Boolean?,
+        offset: String?,
+        limit: Int?
+    ): OwnedGifts {
+        if (limit != null) require(limit in 1..100) {
+            "Limit must be between 1 and 100."
+        }
+
+        return call("getChatGifts") {
+            parameter("chat_id", chatId.toApiParam())
+            parameter("exclude_unsaved", excludeUnsaved)
+            parameter("exclude_saved", excludeSaved)
+            parameter("exclude_unlimited", excludeUnlimited)
+            parameter("exclude_limited_upgradable", excludeLimitedUpgradable)
+            parameter("exclude_limited_non_upgradable", excludeLimitedNonUpgradable)
+            parameter("exclude_unique", excludeUnique)
+            parameter("exclude_from_blockchain", excludeFromBlockchain)
+            parameter("sort_by_price", sortByPrice)
+            parameter("offset", offset)
+            parameter("limit", limit)
+        }
+    }
+
+    // ===== Convert/upgrade/transfer gift methods. =====
+
+    override suspend fun convertGiftToStars(
+        businessConnectionId: String,
+        ownedGiftId: String
+    ): Boolean = call("convertGiftToStars") {
+        parameter("business_connection_id", businessConnectionId)
+        parameter("owned_gift_id", ownedGiftId)
+    }
+
+    override suspend fun upgradeGift(
+        businessConnectionId: String,
+        ownedGiftId: String,
+        keepOriginalDetails: Boolean?,
+        starCount: Int?
+    ): Boolean = call("upgradeGift") {
+        parameter("business_connection_id", businessConnectionId)
+        parameter("owned_gift_id", ownedGiftId)
+        parameter("keep_original_details", keepOriginalDetails)
+        parameter("star_count", starCount)
+    }
+
+    override suspend fun transferGift(
+        businessConnectionId: String,
+        ownedGiftId: String,
+        newOwnerChatId: Long,
+        starCount: Int?
+    ): Boolean = call("transferGift") {
+        parameter("business_connection_id", businessConnectionId)
+        parameter("owned_gift_id", ownedGiftId)
+        parameter("new_owner_chat_id", newOwnerChatId)
+        parameter("star_count", starCount)
+    }
+
+    // ===== Business messages. =====
 
     fun updatesFlow(
         limit: Int = 100,
