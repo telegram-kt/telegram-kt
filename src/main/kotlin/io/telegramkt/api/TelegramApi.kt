@@ -22,6 +22,9 @@ import io.telegramkt.model.forum.topic.TopicIconColor
 import io.telegramkt.model.gift.AcceptedGiftTypes
 import io.telegramkt.model.gift.Gifts
 import io.telegramkt.model.gift.owned.OwnedGifts
+import io.telegramkt.model.inline.InlineQueryResult
+import io.telegramkt.model.keyboard.button.prepared.PreparedKeyboardButton
+import io.telegramkt.model.keyboard.button.prepared.PreparedKeyboardButtonType
 import io.telegramkt.model.keyboard.reply.InlineKeyboardMarkup
 import io.telegramkt.model.keyboard.reply.ReplyMarkup
 import io.telegramkt.model.keyboard.reply.parameters.ReplyParameters
@@ -31,6 +34,7 @@ import io.telegramkt.model.menu.button.MenuButton
 import io.telegramkt.model.message.Message
 import io.telegramkt.model.message.MessageId
 import io.telegramkt.model.message.entity.MessageEntity
+import io.telegramkt.model.message.inline.prepared.PreparedInlineMessage
 import io.telegramkt.model.poll.PollType
 import io.telegramkt.model.poll.input.InputPollOption
 import io.telegramkt.model.premium.PremiumSubscriptionPeriod
@@ -47,6 +51,7 @@ import io.telegramkt.model.user.profile.UserProfilePhotos
 import io.telegramkt.model.story.Story
 import io.telegramkt.model.story.StoryActivePeriod
 import io.telegramkt.model.story.area.StoryArea
+import io.telegramkt.model.web.SentWebAppMessage
 import kotlin.time.Duration
 import kotlin.time.Instant
 
@@ -1288,4 +1293,27 @@ interface TelegramApi {
         businessConnectionId: String,
         storyId: Int,
     ): Boolean
+
+    // ==================== Answer web app query. ====================
+    suspend fun answerWebAppQuery(
+        webAppQueryId: String,
+        result: InlineQueryResult,
+    ): SentWebAppMessage
+
+    // ==================== Save prepared inline message/ keyboard button. ====================
+    suspend fun savePreparedInlineMessage(
+        userId: Long? = null,
+        result: InlineQueryResult,
+        allowUserChats: Boolean? = null,
+        allowBotChats: Boolean? = null,
+        allowGroupChats: Boolean? = null,
+        allowChannelChats: Boolean? = null,
+    ): PreparedInlineMessage
+
+    suspend fun savePreparedKeyboardButton(
+        name: String,
+        type: PreparedKeyboardButtonType,
+        maxQuantity: Int? = null,
+        requestWriteAccess: Boolean? = null,
+    ): PreparedKeyboardButton
 }

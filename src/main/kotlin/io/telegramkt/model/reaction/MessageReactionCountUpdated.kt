@@ -9,4 +9,10 @@ data class MessageReactionCountUpdated(
     @SerialName("chat") val chat: Chat,
     @SerialName("message_id") val messageId: Int,
     @SerialName("reactions") val reactions: List<ReactionCount>
-)
+) {
+    fun topReaction(): ReactionCount? = reactions.maxByOrNull { it.totalCount }
+
+    fun activeReactions(): List<ReactionCount> = reactions.filter { it.totalCount > 0 }
+
+    fun totalReactionsCount(): Int = reactions.sumOf { it.totalCount }
+}

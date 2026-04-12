@@ -44,6 +44,9 @@ import io.telegramkt.model.forum.topic.TopicIconColor
 import io.telegramkt.model.gift.AcceptedGiftTypes
 import io.telegramkt.model.gift.Gifts
 import io.telegramkt.model.gift.owned.OwnedGifts
+import io.telegramkt.model.inline.InlineQueryResult
+import io.telegramkt.model.keyboard.button.prepared.PreparedKeyboardButton
+import io.telegramkt.model.keyboard.button.prepared.PreparedKeyboardButtonType
 import io.telegramkt.model.keyboard.reply.InlineKeyboardMarkup
 import io.telegramkt.model.keyboard.reply.ReplyMarkup
 import io.telegramkt.model.keyboard.reply.parameters.ReplyParameters
@@ -59,6 +62,7 @@ import io.telegramkt.model.menu.button.MenuButton
 import io.telegramkt.model.message.Message
 import io.telegramkt.model.message.MessageId
 import io.telegramkt.model.message.entity.MessageEntity
+import io.telegramkt.model.message.inline.prepared.PreparedInlineMessage
 import io.telegramkt.model.poll.PollType
 import io.telegramkt.model.poll.input.InputPollOption
 import io.telegramkt.model.poll.input.PollOptionsBuilder
@@ -78,6 +82,7 @@ import io.telegramkt.model.user.User
 import io.telegramkt.model.user.boost.UserChatBoosts
 import io.telegramkt.model.user.profile.UserProfileAudios
 import io.telegramkt.model.user.profile.UserProfilePhotos
+import io.telegramkt.model.web.SentWebAppMessage
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -2458,7 +2463,41 @@ class TelegramBotClient(
         parameter("story_id", storyId)
     }
 
-    // ===== Business messages. =====
+    override suspend fun answerWebAppQuery(
+        webAppQueryId: String,
+        result: InlineQueryResult,
+    ): SentWebAppMessage = call("answerWebAppQuery") {
+        parameter("web_app_query_id", webAppQueryId)
+        parameter("result", result)
+    }
+
+    override suspend fun savePreparedInlineMessage(
+        userId: Long?,
+        result: InlineQueryResult,
+        allowUserChats: Boolean?,
+        allowBotChats: Boolean?,
+        allowGroupChats: Boolean?,
+        allowChannelChats: Boolean?,
+    ): PreparedInlineMessage = call("savePreparedInlineMessage") {
+        parameter("user_id", userId)
+        parameter("result", result)
+        parameter("allow_user_chats", allowUserChats)
+        parameter("allow_bot_chats", allowBotChats)
+        parameter("allow_group_chats", allowGroupChats)
+        parameter("allow_channel_chats", allowChannelChats)
+    }
+
+    override suspend fun savePreparedKeyboardButton(
+        name: String,
+        type: PreparedKeyboardButtonType,
+        maxQuantity: Int?,
+        requestWriteAccess: Boolean?,
+    ): PreparedKeyboardButton = call("savePreparedKeyboardButton") {
+        parameter("name", name)
+        parameter("type", type)
+        parameter("max_quantity", maxQuantity)
+        parameter("request_write_access", requestWriteAccess)
+    }
 
     fun updatesFlow(
         limit: Int = 100,

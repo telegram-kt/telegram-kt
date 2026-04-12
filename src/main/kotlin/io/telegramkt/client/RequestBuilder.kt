@@ -10,6 +10,7 @@ import io.ktor.http.fromFilePath
 import io.telegramkt.model.chat.administrator.ChatAdministratorRights
 import io.telegramkt.model.file.input.InputFile
 import io.telegramkt.model.forum.topic.TopicIconColor
+import io.telegramkt.model.inline.InlineQueryResult
 import io.telegramkt.model.media.input.AlbumableMedia
 import io.telegramkt.model.media.input.InputMediaAudio
 import io.telegramkt.model.media.input.InputMediaDocument
@@ -83,6 +84,7 @@ internal fun Json.buildJsonBody(params: Map<String, Any?>): JsonObject =
                 is TopicIconColor -> JsonPrimitive(value.rgb)
                 is MenuButton -> encodeToJsonElement(value)
                 is ChatAdministratorRights -> encodeToJsonElement(value)
+                is InlineQueryResult -> encodeToJsonElement(value)
                 else -> encodeToJsonElement(value)
             }
             put(key, element)

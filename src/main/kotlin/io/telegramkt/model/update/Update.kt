@@ -1,5 +1,6 @@
 package io.telegramkt.model.update
 
+import io.telegramkt.model.bot.ManagedBotUpdated
 import io.telegramkt.model.business.BusinessConnection
 import io.telegramkt.model.business.BusinessMessagesDeleted
 import io.telegramkt.model.callback.CallbackQuery
@@ -46,4 +47,5 @@ data class Update(
     @SerialName("chat_join_request") val chatJoinRequest: ChatJoinRequest? = null,
     @SerialName("chat_boost") val chatBoost: ChatBoostUpdated? = null,
     @SerialName("removed_chat_boost") val removedChatBoost: ChatBoostRemoved? = null,
+    @SerialName("managed_bot") val managedBot: ManagedBotUpdated? = null,
 )

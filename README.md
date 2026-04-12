@@ -8,18 +8,39 @@
   <strong>Modern, type-safe, coroutine-first Telegram Bot API library for Kotlin</strong>
 </p>
 
-<p align="center">
-  <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" alt="License"></a>
-  <img src="https://img.shields.io/badge/Kotlin-2.0%2B-purple?logo=kotlin" alt="Kotlin">
-  <img src="https://img.shields.io/badge/Ktor-3.4%2B-blue?logo=ktor" alt="Ktor">
-  <img src="https://img.shields.io/badge/status-work--in--progress-orange" alt="WIP">
-</p>
+<div align="center">
+
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
+[![Kotlin](https://img.shields.io/badge/Kotlin-2.0%2B-purple?logo=kotlin)](https://kotlinlang.org)
+[![Ktor](https://img.shields.io/badge/Ktor-3.4%2B-blue?logo=ktor)](https://ktor.io)
+[![Status](https://img.shields.io/badge/status-work--in--progress-orange)](https://github.com/telegram-kt/telegram-kt)
+[![Stars](https://img.shields.io/github/stars/telegram-kt/telegram-kt?style=social)](https://github.com/telegram-kt/telegram-kt)
+
+</div>
+
+---
+
+## ⭐ Support the Project
+
+**If you find this library useful, please consider giving it a star!** ⭐
+
+It helps us grow, attract contributors, and shows that the Kotlin community needs a modern Telegram Bot library.
+
+[![Star this repo](https://img.shields.io/github/stars/telegram-kt/telegram-kt?style=social)](https://github.com/telegram-kt/telegram-kt/stargazers)
 
 ---
 
 ## 🚧 Work in Progress
 
 This library is currently in active development. APIs may change until we reach v1.0.0.
+
+**Current status:**
+- ✅ Core API methods (messaging, files, updates)
+- ✅ Type-safe DSL for handlers
+- ✅ Long-polling support
+- ✅ Multipart file uploads
+- 🔄 Webhook support (coming soon)
+- 🔄 More API methods coverage
 
 **We'd love your help!** See [Contributing](https://github.com/telegram-kt/telegram-kt/tree/master?tab=readme-ov-file#-contributing) section below.
 
@@ -65,3 +86,13 @@ We welcome contributions! Areas where help is needed:
   
 ## 📄 License
 ### This project is licensed under the Apache License 2.0 - see the [LICENSE](https://github.com/telegram-kt/telegram-kt/blob/master/LICENSE) file for details.
+
+## 📬 Contact
+* ### GitHub Issues: [GitHub Issues](https://github.com/telegram-kt/telegram-kt/issues)
+* ### Discussions: [Discussions](https://github.com/telegram-kt/telegram-kt/discussions)
+
+---
+
+<div align="center">
+ <h3> Made with ❤️ for the Kotlin community </h3>
+</div>
