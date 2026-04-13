@@ -8,19 +8,16 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-@SerialName("video")
-data class InputMediaVideo(
+@SerialName("animation")
+data class InputMediaAnimation(
     @Serializable(with = InputFileSerializer::class) override val media: InputFile,
     @Serializable(with = InputFileSerializer::class) val thumbnail: InputFile? = null,
-    @Serializable(with = InputFileSerializer::class) val cover: InputFile? = null,
-    @SerialName("start_timestamp") val startTimestamp: Int? = null,
-    override val caption: String? = null,
+    @SerialName("caption") override val caption: String? = null,
     @SerialName("parse_mode") override val parseMode: ParseMode? = null,
     @SerialName("caption_entities") val captionEntities: List<MessageEntity>? = null,
     @SerialName("show_caption_above_media") val showCaptionAboveMedia: Boolean? = null,
     val width: Int? = null,
     val height: Int? = null,
     val duration: Int? = null,
-    @SerialName("supports_streaming") val supportsStreaming: Boolean? = null,
     @SerialName("has_spoiler") val hasSpoiler: Boolean? = null,
-): PhotoVideoGroup, InputMedia
+): InputMedia

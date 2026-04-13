@@ -29,12 +29,14 @@ import io.telegramkt.model.keyboard.reply.InlineKeyboardMarkup
 import io.telegramkt.model.keyboard.reply.ReplyMarkup
 import io.telegramkt.model.keyboard.reply.parameters.ReplyParameters
 import io.telegramkt.model.media.input.AlbumableMedia
+import io.telegramkt.model.media.input.InputMedia
 import io.telegramkt.model.media.input.InputProfilePhoto
 import io.telegramkt.model.menu.button.MenuButton
 import io.telegramkt.model.message.Message
 import io.telegramkt.model.message.MessageId
 import io.telegramkt.model.message.entity.MessageEntity
 import io.telegramkt.model.message.inline.prepared.PreparedInlineMessage
+import io.telegramkt.model.poll.Poll
 import io.telegramkt.model.poll.PollType
 import io.telegramkt.model.poll.input.InputPollOption
 import io.telegramkt.model.premium.PremiumSubscriptionPeriod
@@ -133,6 +135,39 @@ interface TelegramApi {
         entities: List<MessageEntity>? = null,
         disableWebPagePreview: Boolean? = null,
         replyMarkup: InlineKeyboardMarkup? = null,
+        businessConnectionId: String? = null,
+    ): Message
+
+    /**
+     * Edit caption of existing message.
+     * Works for both regular and inline messages.
+     */
+    suspend fun editMessageCaption(
+        chatId: ChatId?,
+        messageId: Int?,
+        caption: String? = null,
+        parseMode: ParseMode? = null,
+        inlineMessageId: String? = null,
+        captionEntities: List<MessageEntity>? = null,
+        showCaptionAboveMedia: Boolean? = null,
+        replyMarkup: InlineKeyboardMarkup? = null,
+        businessConnectionId: String? = null,
+    ): Message
+
+    suspend fun editMessageMedia(
+        chatId: ChatId?,
+        messageId: Int?,
+        inlineMessageId: String? = null,
+        media: InputMedia,
+        replyMarkup: InlineKeyboardMarkup? = null,
+        businessConnectionId: String? = null,
+    ): Message
+
+    suspend fun editMessageReplyMarkup(
+        chatId: ChatId?,
+        messageId: Int?,
+        inlineMessageId: String? = null,
+        replyMarkup: InlineKeyboardMarkup?,
         businessConnectionId: String? = null,
     ): Message
 
@@ -521,7 +556,7 @@ interface TelegramApi {
         messageThreadId: Int? = null,
         directMessagesTopicId: Int? = null,
         horizontalAccuracy: Float? = null,
-        livePeriod: Int? = null,
+        livePeriod: Duration? = null,
         heading: Int? = null,
         proximityAlertRadius: Int? = null,
         disableNotification: Boolean? = null,
@@ -530,6 +565,27 @@ interface TelegramApi {
         messageEffectId: String? = null,
         suggestedPostParameters: SuggestedPostParameters? = null,
         replyParameters: ReplyParameters? = null,
+        replyMarkup: ReplyMarkup? = null,
+    ): Message
+
+    suspend fun editMessageLiveLocation(
+        chatId: ChatId?,
+        messageId: Int?,
+        inlineMessageId: Int? = null,
+        latitude: Float?,
+        longitude: Float?,
+        businessConnectionId: String? = null,
+        livePeriod: Duration? = null,
+        horizontalAccuracy: Float? = null,
+        heading: Int? = null,
+        replyMarkup: ReplyMarkup? = null,
+    ): Message
+
+    suspend fun stopMessageLiveLocation(
+        chatId: ChatId?,
+        messageId: Int?,
+        inlineMessageId: Int? = null,
+        businessConnectionId: String? = null,
         replyMarkup: ReplyMarkup? = null,
     ): Message
 
@@ -572,7 +628,7 @@ interface TelegramApi {
         messageThreadId: Int? = null,
         directMessagesTopicId: Int? = null,
         horizontalAccuracy: Float? = null,
-        livePeriod: Int? = null,
+        livePeriod: Duration? = null,
         heading: Int? = null,
         proximityAlertRadius: Int? = null,
         disableNotification: Boolean? = null,
@@ -689,6 +745,13 @@ interface TelegramApi {
         replyMarkup: ReplyMarkup? = null,
     ): Message
 
+    suspend fun stopPoll(
+        chatId: ChatId,
+        messageId: Int,
+        replyMarkup: InlineKeyboardMarkup? = null,
+        businessConnectionId: String? = null,
+    ): Poll
+
     // ==================== CheckList. ====================
 
     suspend fun sendChecklist(
@@ -700,6 +763,14 @@ interface TelegramApi {
         messageEffectId: String? = null,
         replyParameters: ReplyParameters? = null,
         replyMarkup: ReplyMarkup? = null,
+    ): Message
+
+    suspend fun editMessageChecklist(
+        chatId: ChatId,
+        messageId: Int,
+        checklist: InputChecklist,
+        businessConnectionId: String,
+        replyMarkup: InlineKeyboardMarkup? = null,
     ): Message
 
     // ==================== Dice. ====================
@@ -1145,7 +1216,7 @@ interface TelegramApi {
     suspend fun readBusinessMessage(
         businessConnectionId: String,
         chatId: Long,
-        messageId: Long,
+        messageId: Int,
     ): Boolean
 
     suspend fun deleteBusinessMessages(
@@ -1316,4 +1387,17 @@ interface TelegramApi {
         maxQuantity: Int? = null,
         requestWriteAccess: Boolean? = null,
     ): PreparedKeyboardButton
+
+    // ==================== Suggested posts. ====================
+    suspend fun approveSuggestedPost(
+        chatId: ChatId,
+        messageId: Int,
+        sendDate: Instant? = null,
+    ): Boolean
+
+    suspend fun declineSuggestedPost(
+        chatId: ChatId,
+        messageId: Int,
+        comment: String? = null,
+    ): Boolean
 }

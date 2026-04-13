@@ -12,6 +12,7 @@ import io.telegramkt.model.file.input.InputFile
 import io.telegramkt.model.forum.topic.TopicIconColor
 import io.telegramkt.model.inline.InlineQueryResult
 import io.telegramkt.model.media.input.AlbumableMedia
+import io.telegramkt.model.media.input.InputMedia
 import io.telegramkt.model.media.input.InputMediaAudio
 import io.telegramkt.model.media.input.InputMediaDocument
 import io.telegramkt.model.media.input.InputMediaPhoto
@@ -76,6 +77,7 @@ internal fun Json.buildJsonBody(params: Map<String, Any?>): JsonObject =
                         else -> encodeToJsonElement(value.filterIsInstance<String>())
                     }
                 }
+                is InputMedia -> encodeToJsonElement(value)
                 is Enum<*> -> {
                     encodeToJsonElement(value.toString().lowercase())
                 }

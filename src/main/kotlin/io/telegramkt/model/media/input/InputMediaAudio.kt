@@ -18,4 +18,4 @@ data class InputMediaAudio(
     val duration: Int? = null,
     val performer: String? = null,
     val title: String? = null,
-) : AudioGroup
+) : AudioGroup, InputMedia

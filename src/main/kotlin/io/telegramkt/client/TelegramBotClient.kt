@@ -56,6 +56,7 @@ import io.telegramkt.model.location.builder.LocationRequestBuilder
 import io.telegramkt.model.location.builder.VenueRequestBuilder
 import io.telegramkt.model.media.input.MediaGroupBuilder
 import io.telegramkt.model.media.input.AlbumableMedia
+import io.telegramkt.model.media.input.InputMedia
 import io.telegramkt.model.media.input.InputProfilePhoto
 import io.telegramkt.model.media.input.InputProfilePhotoBuilder
 import io.telegramkt.model.menu.button.MenuButton
@@ -63,6 +64,7 @@ import io.telegramkt.model.message.Message
 import io.telegramkt.model.message.MessageId
 import io.telegramkt.model.message.entity.MessageEntity
 import io.telegramkt.model.message.inline.prepared.PreparedInlineMessage
+import io.telegramkt.model.poll.Poll
 import io.telegramkt.model.poll.PollType
 import io.telegramkt.model.poll.input.InputPollOption
 import io.telegramkt.model.poll.input.PollOptionsBuilder
@@ -189,6 +191,58 @@ class TelegramBotClient(
         parameter("parse_mode", parseMode)
         parameter("entities", entities?.let { json.encodeToString(it) })
         parameter("disable_web_page_preview", disableWebPagePreview)
+        parameter("reply_markup", replyMarkup?.let { json.encodeToString(it) })
+        parameter("business_connection_id", businessConnectionId)
+    }
+
+    override suspend fun editMessageCaption(
+        chatId: ChatId?,
+        messageId: Int?,
+        caption: String?,
+        parseMode: ParseMode?,
+        inlineMessageId: String?,
+        captionEntities: List<MessageEntity>?,
+        showCaptionAboveMedia: Boolean?,
+        replyMarkup: InlineKeyboardMarkup?,
+        businessConnectionId: String?
+    ): Message = call("editMessageCaption") {
+        parameter("chat_id", chatId?.toApiParam())
+        parameter("message_id", messageId)
+        parameter("caption", caption)
+        parameter("inline_message_id", inlineMessageId)
+        parameter("caption_entities", captionEntities?.let { json.encodeToString(it) })
+        parameter("show_caption_above_media", showCaptionAboveMedia)
+        parameter("parse_mode", parseMode)
+        parameter("reply_markup", replyMarkup?.let { json.encodeToString(it) })
+        parameter("business_connection_id", businessConnectionId)
+    }
+
+    override suspend fun editMessageMedia(
+        chatId: ChatId?,
+        messageId: Int?,
+        inlineMessageId: String?,
+        media: InputMedia,
+        replyMarkup: InlineKeyboardMarkup?,
+        businessConnectionId: String?
+    ): Message = call("editMessageMedia") {
+        parameter("chat_id", chatId?.toApiParam())
+        parameter("message_id", messageId)
+        parameter("inline_message_id", inlineMessageId)
+        parameter("media", media)
+        parameter("reply_markup", replyMarkup?.let { json.encodeToString(it) })
+        parameter("business_connection_id", businessConnectionId)
+    }
+
+    override suspend fun editMessageReplyMarkup(
+        chatId: ChatId?,
+        messageId: Int?,
+        inlineMessageId: String?,
+        replyMarkup: InlineKeyboardMarkup?,
+        businessConnectionId: String?
+    ): Message = call("editMessageReplyMarkup") {
+        parameter("chat_id", chatId?.toApiParam())
+        parameter("message_id", messageId)
+        parameter("inline_message_id", inlineMessageId)
         parameter("reply_markup", replyMarkup?.let { json.encodeToString(it) })
         parameter("business_connection_id", businessConnectionId)
     }
@@ -719,7 +773,7 @@ class TelegramBotClient(
         messageThreadId: Int?,
         directMessagesTopicId: Int?,
         horizontalAccuracy: Float?,
-        livePeriod: Int?,
+        livePeriod: Duration?,
         heading: Int?,
         proximityAlertRadius: Int?,
         disableNotification: Boolean?,
@@ -729,22 +783,33 @@ class TelegramBotClient(
         suggestedPostParameters: SuggestedPostParameters?,
         replyParameters: ReplyParameters?,
         replyMarkup: ReplyMarkup?
-    ): Message = call("sendLocation") {
-        parameter("chat_id", chatId.toApiParam())
-        parameter("latitude", latitude)
-        parameter("longitude", longitude)
-        parameter("business_connection_id", businessConnectionId)
-        parameter("message_thread_id", messageThreadId)
-        parameter("direct_messages_topic_id", directMessagesTopicId)
-        parameter("horizontal_accuracy", horizontalAccuracy)
-        parameter("live_period", livePeriod)
-        parameter("disable_notification", disableNotification)
-        parameter("protect_content", protectContent)
-        parameter("allow_paid_broadcast", allowPaidBroadcast)
-        parameter("message_effect_id", messageEffectId)
-        parameter("suggested_post_parameters", suggestedPostParameters?.let { json.encodeToString(it) })
-        parameter("reply_parameters", replyParameters?.let { json.encodeToString(it) })
-        parameter("reply_markup", replyMarkup?.let { json.encodeToString(it) })
+    ): Message {
+
+        if (livePeriod != null) {
+            val seconds = livePeriod.inWholeSeconds
+            require(seconds in 60..86400 || seconds == 0x7FFFFFFF.toLong()) {
+                "Live period must be 60seconds-90days or Duration.forever"
+            }
+        }
+
+        return call("sendLocation") {
+            parameter("chat_id", chatId.toApiParam())
+            parameter("latitude", latitude)
+            parameter("longitude", longitude)
+            parameter("business_connection_id", businessConnectionId)
+            parameter("message_thread_id", messageThreadId)
+            parameter("direct_messages_topic_id", directMessagesTopicId)
+            parameter("horizontal_accuracy", horizontalAccuracy)
+            parameter("live_period", livePeriod)
+            parameter("heading", heading)
+            parameter("disable_notification", disableNotification)
+            parameter("protect_content", protectContent)
+            parameter("allow_paid_broadcast", allowPaidBroadcast)
+            parameter("message_effect_id", messageEffectId)
+            parameter("suggested_post_parameters", suggestedPostParameters?.let { json.encodeToString(it) })
+            parameter("reply_parameters", replyParameters?.let { json.encodeToString(it) })
+            parameter("reply_markup", replyMarkup?.let { json.encodeToString(it) })
+        }
     }
 
     /**
@@ -812,6 +877,43 @@ class TelegramBotClient(
         )
     }
 
+    override suspend fun editMessageLiveLocation(
+        chatId: ChatId?,
+        messageId: Int?,
+        inlineMessageId: Int?,
+        latitude: Float?,
+        longitude: Float?,
+        businessConnectionId: String?,
+        livePeriod: Duration?,
+        horizontalAccuracy: Float?,
+        heading: Int?,
+        replyMarkup: ReplyMarkup?
+    ): Message = call("editMessageLiveLocation") {
+        parameter("chat_id", chatId?.toApiParam())
+        parameter("message_id", messageId)
+        parameter("inline_message_id", inlineMessageId)
+        parameter("latitude", latitude)
+        parameter("longitude", longitude)
+        parameter("business_connection_id", businessConnectionId)
+        parameter("live_period", livePeriod)
+        parameter("horizontal_accuracy", horizontalAccuracy)
+        parameter("heading", heading)
+        parameter("reply_markup", replyMarkup?.let { json.encodeToString(it) })
+    }
+
+    override suspend fun stopMessageLiveLocation(
+        chatId: ChatId?,
+        messageId: Int?,
+        inlineMessageId: Int?,
+        businessConnectionId: String?,
+        replyMarkup: ReplyMarkup?
+    ): Message = call("stopMessageLiveLocation") {
+        parameter("chat_id", chatId?.toApiParam())
+        parameter("message_id", messageId)
+        parameter("inline_message_id", inlineMessageId)
+        parameter("reply_markup", replyMarkup?.let { json.encodeToString(it) })
+    }
+
     // ===== Venue methods. =====
 
     override suspend fun sendVenue(
@@ -828,7 +930,7 @@ class TelegramBotClient(
         messageThreadId: Int?,
         directMessagesTopicId: Int?,
         horizontalAccuracy: Float?,
-        livePeriod: Int?,
+        livePeriod: Duration?,
         heading: Int?,
         proximityAlertRadius: Int?,
         disableNotification: Boolean?,
@@ -1143,6 +1245,18 @@ class TelegramBotClient(
         replyParameters, replyMarkup
     )
 
+    override suspend fun stopPoll(
+        chatId: ChatId,
+        messageId: Int,
+        replyMarkup: InlineKeyboardMarkup?,
+        businessConnectionId: String?
+    ): Poll = call("stopPoll") {
+        parameter("chat_id", chatId.toApiParam())
+        parameter("message_id", messageId)
+        parameter("reply_markup", replyMarkup)
+        parameter("business_connection_id", businessConnectionId)
+    }
+
     // ===== Check list methods. =====
 
     override suspend fun sendChecklist(
@@ -1162,6 +1276,20 @@ class TelegramBotClient(
         parameter("protect_content", protectContent)
         parameter("message_effect_id", messageEffectId)
         parameter("reply_parameters", replyParameters)
+        parameter("reply_markup", replyMarkup)
+    }
+
+    override suspend fun editMessageChecklist(
+        chatId: ChatId,
+        messageId: Int,
+        checklist: InputChecklist,
+        businessConnectionId: String,
+        replyMarkup: InlineKeyboardMarkup?
+    ): Message = call("editMessageChecklist") {
+        parameter("chat_id", chatId.toApiParam())
+        parameter("message_id", messageId)
+        parameter("checklist", checklist)
+        parameter("business_connection_id", businessConnectionId)
         parameter("reply_markup", replyMarkup)
     }
 
@@ -2086,7 +2214,7 @@ class TelegramBotClient(
     override suspend fun readBusinessMessage(
         businessConnectionId: String,
         chatId: Long,
-        messageId: Long
+        messageId: Int
     ): Boolean = call("readBusinessMessage") {
         parameter("business_connection_id", businessConnectionId)
         parameter("chat_id", chatId)
@@ -2497,6 +2625,42 @@ class TelegramBotClient(
         parameter("type", type)
         parameter("max_quantity", maxQuantity)
         parameter("request_write_access", requestWriteAccess)
+    }
+
+    // ===== Suggested post methods. =====
+
+    override suspend fun approveSuggestedPost(
+        chatId: ChatId,
+        messageId: Int,
+        sendDate: Instant?
+    ): Boolean {
+        if (sendDate != null) require(sendDate.epochSeconds in 1..2678400) {
+            "Send date must be between in 1seconds and 30 days"
+        }
+
+        return call("approveSuggestedPost") {
+            parameter("chat_id", chatId)
+            parameter("message_id", messageId)
+            parameter("send_date", sendDate)
+        }
+    }
+
+    override suspend fun declineSuggestedPost(
+        chatId: ChatId,
+        messageId: Int,
+        comment: String?
+    ): Boolean {
+        if (comment != null) {
+            require(comment.length in 1..128) {
+                "Comment must be between 1 and 128 characters"
+            }
+        }
+
+        return call("declineSuggestedPost") {
+            parameter("chat_id", chatId)
+            parameter("message_id", messageId)
+            parameter("comment", comment)
+        }
     }
 
     fun updatesFlow(

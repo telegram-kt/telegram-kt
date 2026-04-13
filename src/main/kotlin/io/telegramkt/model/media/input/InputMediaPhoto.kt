@@ -16,4 +16,4 @@ data class InputMediaPhoto(
     @SerialName("caption_entities") val captionEntities: List<MessageEntity>? = null,
     @SerialName("show_caption_above_media") val showCaptionAboveMedia: Boolean? = null,
     @SerialName("has_spoiler") val hasSpoiler: Boolean? = null
-) : PhotoVideoGroup
+) : PhotoVideoGroup, InputMedia

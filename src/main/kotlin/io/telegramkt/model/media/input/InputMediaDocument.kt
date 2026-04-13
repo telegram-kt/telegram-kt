@@ -16,4 +16,4 @@ data class InputMediaDocument(
     @SerialName("parse_mode") override val parseMode: ParseMode? = null,
     @SerialName("caption_entities") val captionEntities: List<MessageEntity>? = null,
     @SerialName("disable_content_type_detection") val disableContentTypeDetection: Boolean? = null,
-) : DocumentGroup
+) : DocumentGroup, InputMedia
