@@ -398,7 +398,7 @@ class HandlerRegistry {
                 }
 
                 ctx.update.editedMessage != null -> {
-                    onEditedMessage.forEach { it(ctx, ctx.update.editedMessage!!) }
+                    onEditedMessage.forEach { it(ctx, ctx.update.editedMessage) }
                 }
 
                 // === Locations. ===
@@ -487,67 +487,67 @@ class HandlerRegistry {
 
                 // === Channel Posts. ===
                 ctx.update.channelPost != null -> {
-                    onChannelPost.forEach { it(ctx, ctx.update.channelPost!!) }
+                    onChannelPost.forEach { it(ctx, ctx.update.channelPost) }
                 }
                 ctx.update.editedChannelPost != null -> {
-                    onEditedChannelPost.forEach { it(ctx, ctx.update.editedChannelPost!!) }
+                    onEditedChannelPost.forEach { it(ctx, ctx.update.editedChannelPost) }
                 }
 
                 // === Business. ===
                 ctx.update.businessConnection != null -> {
-                    onBusinessConnection.forEach { it(ctx, ctx.update.businessConnection!!) }
+                    onBusinessConnection.forEach { it(ctx, ctx.update.businessConnection) }
                 }
                 ctx.update.businessMessage != null -> {
-                    onBusinessMessage.forEach { it(ctx, ctx.update.businessMessage!!) }
+                    onBusinessMessage.forEach { it(ctx, ctx.update.businessMessage) }
                 }
                 ctx.update.editedBusinessMessage != null -> {
-                    onEditedBusinessMessage.forEach { it(ctx, ctx.update.editedBusinessMessage!!) }
+                    onEditedBusinessMessage.forEach { it(ctx, ctx.update.editedBusinessMessage) }
                 }
                 ctx.update.deletedBusinessMessages != null -> {
-                    onDeletedBusinessMessages.forEach { it(ctx, ctx.update.deletedBusinessMessages!!) }
+                    onDeletedBusinessMessages.forEach { it(ctx, ctx.update.deletedBusinessMessages) }
                 }
 
                 // === Inline. ===
                 ctx.update.inlineQuery != null -> {
-                    onInlineQuery.forEach { it(ctx, ctx.update.inlineQuery!!) }
+                    onInlineQuery.forEach { it(ctx, ctx.update.inlineQuery) }
                 }
                 ctx.update.chosenInlineResult != null -> {
-                    onChosenInlineResult.forEach { it(ctx, ctx.update.chosenInlineResult!!) }
+                    onChosenInlineResult.forEach { it(ctx, ctx.update.chosenInlineResult) }
                 }
 
                 // === Payment. ===
                 ctx.update.shippingQuery != null -> {
-                    onShippingQuery.forEach { it(ctx, ctx.update.shippingQuery!!) }
+                    onShippingQuery.forEach { it(ctx, ctx.update.shippingQuery) }
                 }
                 ctx.update.preCheckoutQuery != null -> {
-                    onPreCheckoutQuery.forEach { it(ctx, ctx.update.preCheckoutQuery!!) }
+                    onPreCheckoutQuery.forEach { it(ctx, ctx.update.preCheckoutQuery) }
                 }
                 ctx.update.purchasedPaidMedia != null -> {
-                    onPurchasedPaidMedia.forEach { it(ctx, ctx.update.purchasedPaidMedia!!) }
+                    onPurchasedPaidMedia.forEach { it(ctx, ctx.update.purchasedPaidMedia) }
                 }
 
                 // === Chat Member. ===
                 ctx.update.myChatMember != null -> {
-                    onMyChatMember.forEach { it(ctx, ctx.update.myChatMember!!) }
+                    onMyChatMember.forEach { it(ctx, ctx.update.myChatMember) }
                 }
                 ctx.update.chatMember != null -> {
-                    onChatMember.forEach { it(ctx, ctx.update.chatMember!!) }
+                    onChatMember.forEach { it(ctx, ctx.update.chatMember) }
                 }
                 ctx.update.chatJoinRequest != null -> {
-                    onChatJoinRequest.forEach { it(ctx, ctx.update.chatJoinRequest!!) }
+                    onChatJoinRequest.forEach { it(ctx, ctx.update.chatJoinRequest) }
                 }
 
                 // === Chat Boost. ===
                 ctx.update.chatBoost != null -> {
-                    onChatBoost.forEach { it(ctx, ctx.update.chatBoost!!) }
+                    onChatBoost.forEach { it(ctx, ctx.update.chatBoost) }
                 }
                 ctx.update.removedChatBoost != null -> {
-                    onRemovedChatBoost.forEach { it(ctx, ctx.update.removedChatBoost!!) }
+                    onRemovedChatBoost.forEach { it(ctx, ctx.update.removedChatBoost) }
                 }
 
                 // === Managed Bot. ===
                 ctx.update.managedBot != null -> {
-                    onManagedBot.forEach { it(ctx, ctx.update.managedBot!!) }
+                    onManagedBot.forEach { it(ctx, ctx.update.managedBot) }
                 }
             }
         } catch (ex: Exception) {

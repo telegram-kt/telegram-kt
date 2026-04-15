@@ -13,6 +13,7 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.0%2B-purple?logo=kotlin)](https://kotlinlang.org)
 [![Ktor](https://img.shields.io/badge/Ktor-3.4%2B-blue?logo=ktor)](https://ktor.io)
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.telegram-kt/telegram-kt.svg?label=Maven%20Central)](https://central.sonatype.com/namespace/io.github.telegram-kt)
 [![Status](https://img.shields.io/badge/status-work--in--progress-orange)](https://github.com/telegram-kt/telegram-kt)
 [![Stars](https://img.shields.io/github/stars/telegram-kt/telegram-kt?style=social)](https://github.com/telegram-kt/telegram-kt)
 
@@ -27,6 +28,38 @@
 It helps us grow, attract contributors, and shows that the Kotlin community needs a modern Telegram Bot library.
 
 [![Star this repo](https://img.shields.io/github/stars/telegram-kt/telegram-kt?style=social)](https://github.com/telegram-kt/telegram-kt/stargazers)
+
+---
+
+## 📦 Installation
+
+### Gradle (Kotlin DSL)
+
+```kotlin
+dependencies {
+    implementation("io.github.telegram-kt:telegram-kt:0.1.0")
+}
+```
+
+### Gradle (Groovy DSL)
+
+```groovy
+dependencies {
+    implementation 'io.github.telegram-kt:telegram-kt:0.1.0'
+}
+```
+
+### Maven
+
+```xml
+<dependency>
+    <groupId>io.github.telegram-kt</groupId>
+    <artifactId>telegram-kt</artifactId>
+    <version>0.1.0</version>
+</dependency>
+```
+
+> **Note:** Replace `0.1.0` with the latest version. Check [Maven Central](https://central.sonatype.com/artifact/io.github.telegram-kt/telegram-kt) for available releases.
 
 ---
 
