@@ -45,6 +45,7 @@ jobs:
           SONATYPE_TOKEN: ${{ secrets.SONATYPE_TOKEN }}
           GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
           GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+
         run: ./gradlew publishAllPublicationsToCentralPortal
 
       - name: Create GitHub release artifact
