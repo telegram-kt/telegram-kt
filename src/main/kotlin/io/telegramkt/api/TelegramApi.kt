@@ -284,8 +284,8 @@ interface TelegramApi {
         text: String? = null,
         showAlert: Boolean = false,
         url: String? = null,
-        cacheTime: Int? = null,
-    )
+        cacheTime: Duration? = null,
+    ): Boolean
 
     // ==================== FILES. ====================
 
@@ -523,6 +523,30 @@ interface TelegramApi {
         messageEffectId: String? = null,
         replyParameters: ReplyParameters? = null,
     ): List<Message>
+
+    /**
+     * Send sticker.
+     *
+     * @param chatId Chat ID for sending a sticker.
+     * @param sticker Sticker to send (Recommended .WEBP, .WEBM, .TGS formats.)
+     *
+     * client.sendSticker(chatId, InputFile.fromPath("Path/to/sticker/sticker.webp"))
+     */
+    suspend fun sendSticker(
+        chatId: ChatId,
+        sticker: InputFile,
+        businessConnectionId: String? = null,
+        messageThreadId: Int? = null,
+        directMessagesTopicId: Int? = null,
+        emoji: String? = null,
+        disableNotification: Boolean? = null,
+        protectContent: Boolean? = null,
+        allowPaidBroadcast: Boolean? = null,
+        messageEffectId: String? = null,
+        suggestedPostParameters: SuggestedPostParameters? = null,
+        replyParameters: ReplyParameters? = null,
+        replyMarkup: ReplyMarkup? = null,
+    ): Message
 
     // ==================== LOCATION & VENUES. ====================
 

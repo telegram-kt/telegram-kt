@@ -385,9 +385,13 @@ class TelegramBotClient(
         text: String?,
         showAlert: Boolean,
         url: String?,
-        cacheTime: Int?,
-    ) {
-        call<Unit>("answerCallbackQuery") {
+        cacheTime: Duration?,
+    ): Boolean {
+        if (text != null) require(text.length in 1..200) {
+            "Text must be between 1 and 200 characters"
+        }
+
+        return call("answerCallbackQuery") {
             parameter("callback_query_id", callbackQueryId)
             parameter("text", text)
             parameter("show_alert", showAlert)
@@ -704,6 +708,36 @@ class TelegramBotClient(
         parameter("allow_paid_broadcast", allowPaidBroadcast)
         parameter("message_effect_id", messageEffectId)
         parameter("reply_parameters", replyParameters?.let { json.encodeToString(it) })
+    }
+
+    override suspend fun sendSticker(
+        chatId: ChatId,
+        sticker: InputFile,
+        businessConnectionId: String?,
+        messageThreadId: Int?,
+        directMessagesTopicId: Int?,
+        emoji: String?,
+        disableNotification: Boolean?,
+        protectContent: Boolean?,
+        allowPaidBroadcast: Boolean?,
+        messageEffectId: String?,
+        suggestedPostParameters: SuggestedPostParameters?,
+        replyParameters: ReplyParameters?,
+        replyMarkup: ReplyMarkup?
+    ): Message = call("sendSticker") {
+        parameter("chat_id", chatId.toApiParam())
+        parameter("sticker", sticker)
+        parameter("business_connection_id", businessConnectionId)
+        parameter("message_thread_id", messageThreadId)
+        parameter("direct_messages_topic_id", directMessagesTopicId)
+        parameter("emoji", emoji)
+        parameter("disable_notification", disableNotification)
+        parameter("protect_content", protectContent)
+        parameter("allow_paid_broadcast", allowPaidBroadcast)
+        parameter("message_effect_id", messageEffectId)
+        parameter("suggested_post_parameters", suggestedPostParameters?.let { json.encodeToString(it) })
+        parameter("reply_parameters", replyParameters?.let { json.encodeToString(it) })
+        parameter("reply_markup", replyMarkup?.let { json.encodeToString(it) })
     }
 
     suspend fun sendMediaGroup(

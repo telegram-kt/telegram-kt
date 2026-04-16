@@ -13,6 +13,7 @@ import io.telegramkt.model.message.Message
 import io.telegramkt.model.update.Update
 import io.telegramkt.model.user.User
 import kotlinx.coroutines.CoroutineScope
+import kotlin.time.Duration
 
 class BotContext(
     val client: TelegramBotClient,
@@ -227,9 +228,9 @@ class BotContext(
         text: String? = null,
         showAlert: Boolean = false,
         url: String? = null,
-        cacheTime: Int? = null,
-    ) {
-        callbackQuery?.let { cq ->
+        cacheTime: Duration? = null,
+    ): Boolean {
+        return callbackQuery?.let { cq ->
             client.answerCallbackQuery(
                 callbackQueryId = cq.id,
                 text = text,
@@ -237,7 +238,7 @@ class BotContext(
                 url = url,
                 cacheTime = cacheTime,
             )
-        }
+        } ?: false
     }
 
     fun isCommand(cmd: String): Boolean {
