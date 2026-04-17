@@ -28,6 +28,7 @@ import io.telegramkt.model.keyboard.button.prepared.PreparedKeyboardButtonType
 import io.telegramkt.model.keyboard.reply.InlineKeyboardMarkup
 import io.telegramkt.model.keyboard.reply.ReplyMarkup
 import io.telegramkt.model.keyboard.reply.parameters.ReplyParameters
+import io.telegramkt.model.mask.MaskPosition
 import io.telegramkt.model.media.input.AlbumableMedia
 import io.telegramkt.model.media.input.InputMedia
 import io.telegramkt.model.media.input.InputProfilePhoto
@@ -43,6 +44,10 @@ import io.telegramkt.model.premium.PremiumSubscriptionPeriod
 import io.telegramkt.model.reaction.ReactionType
 import io.telegramkt.model.star.StarAmount
 import io.telegramkt.model.sticker.Sticker
+import io.telegramkt.model.sticker.enums.StickerType
+import io.telegramkt.model.sticker.input.InputSticker
+import io.telegramkt.model.sticker.input.StickerFormat
+import io.telegramkt.model.sticker.set.StickerSet
 import io.telegramkt.model.story.InputStoryContent
 import io.telegramkt.model.suggested.SuggestedPostParameters
 import io.telegramkt.model.update.Update
@@ -1424,4 +1429,158 @@ interface TelegramApi {
         messageId: Int,
         comment: String? = null,
     ): Boolean
+
+    // ==================== Stickers.. ====================
+    suspend fun getStickerSet(name: String): StickerSet
+
+    suspend fun getEmojiCustomStickers(customEmojiIds: List<String>): List<Sticker>
+
+    suspend fun uploadStickerFile(
+        userId: Long,
+        sticker: InputFile,
+        stickerFormat: StickerFormat,
+    ): File
+
+    /**
+     * Create new sticker set.
+     *
+     * @param userId User identifier of created sticker set owner.
+     * @param name Short name of sticker set to be used in add sticker URLs(t.me/addstickers/)  (1-64 characters).
+     * @param title Sticker set title (1-16 characters).
+     * @param stickers  List of initial stickers to be added to the sticker set (1-50 items).
+     * @param stickerType Optional. Type of stickers in the set. Default: Regular.
+     * @param needsRepainting Optional. Should the stickers be recolored to match the text/accent color (Only for custom emoji sticker sets).
+     */
+
+    suspend fun createNewStickerSet(
+        userId: Long,
+        name: String,
+        title: String,
+        stickers: List<InputSticker>,
+        stickerType: StickerType = StickerType.REGULAR,
+        needsRepainting: Boolean = false,
+    ): Boolean
+
+    /**
+     * Add sticker to set.
+     *
+     * @param userId User identifier of sticker set owner.
+     * @param name Sticker set name.
+     * @param sticker Object with information about the added sticker.
+     */
+    suspend fun addStickerToSet(
+        userId: Long,
+        name: String,
+        sticker: InputSticker,
+    ): Boolean
+
+    /**
+     * Move a sticker in a set created by the bot to a specific position.
+     *
+     * @param sticker File identifier of the sticker.
+     * @param position New sticker position in the set (Zero-based).
+     */
+    suspend fun setStickerPositionInSet(
+        sticker: String,
+        position: Int,
+    ): Boolean
+
+    /**
+     * Delete a sticker from a set.
+     *
+     * @param sticker File identifier of the sticker.
+     */
+    suspend fun deleteStickerFromSet(sticker: String): Boolean
+
+    /**
+     * Replace an existing sticker in a sticker set with a new one.
+     *
+     * @param userId User identifier of sticker set owner.
+     * @param name Sticker set name.
+     * @param oldSticker File identifier of the replaced sticker.
+     * @param sticker Object with information about the added sticker.
+     */
+    suspend fun replaceStickerInSet(
+        userId: Long,
+        name: String,
+        oldSticker: String,
+        sticker: InputSticker,
+    ): Boolean
+
+    /**
+     * Change the list of emoji assigned to a regular or custom emoji sticker.
+     *
+     * @param sticker File identifier of the replaced sticker.
+     * @param emojiList List of emojis associated with the sticker (1-20 items).
+     */
+    suspend fun setStickerEmojiList(
+        sticker: String,
+        emojiList: List<String>,
+    ): Boolean
+
+    /**
+     * Change search keywords assigned to a regular or custom emoji sticker.
+     *
+     * @param sticker File identifier of the sticker.
+     * @param keywords Search keywords for the sticker (0-20 items, up to 64 characters length).
+     */
+    suspend fun setStickerKeywords(
+        sticker: String,
+        keywords: List<String>? = null,
+    ): Boolean
+
+    /**
+     * Change the mask position of a mask sticker.
+     *
+     * @param sticker File identifier of the sticker.
+     * @param maskPosition Optional. Object with the position where the mask should be placed on faces.
+     */
+    suspend fun setStickerMaskPosition(
+        sticker: String,
+        maskPosition: MaskPosition? = null,
+    ): Boolean
+
+    /**
+     * Set the title of a created sticker set.
+     *
+     * @param name Sticker set name.
+     * @param title Sticker set title (1-64 characters).
+     */
+    suspend fun setStickerSetTitle(
+        name: String,
+        title: String,
+    ): Boolean
+
+    /**
+     * Set the thumbnail of a regular or mask sticker set.
+     *
+     * @param name Sticker set name.
+     * @param userId User identifier of the sticker set owner.
+     * @param format Format of the thumbnail (StickerFormat was used because of its similar parameters).
+     * @param thumbnail Optional. A .WEBP or .PNG image, .TGS animation or .WEBM video with the thumbnail.
+     */
+    suspend fun setStickerSetThumbnail(
+        name: String,
+        userId: Long,
+        format: StickerFormat,
+        thumbnail: InputFile? = null,
+    ): Boolean
+
+    /**
+     * Set the thumbnail of a custom emoji sticker set.
+     *
+     * @param name Sticker set name.
+     * @param customEmojiId Optional. Custom emoji identifier of a sticker from the sticker set. (Skit this parameter to remove the thumbnail).
+     */
+    suspend fun setCustomEmojiStickerSetThumbnail(
+        name: String,
+        customEmojiId: String? = null,
+    ): Boolean
+
+    /**
+     *  Delete a sticker set that was created by the bot.
+     *
+     *  @param name Sticker set name.
+     */
+    suspend fun deleteStickerSet(name: String): Boolean
 }

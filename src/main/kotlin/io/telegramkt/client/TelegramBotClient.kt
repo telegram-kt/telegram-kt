@@ -54,6 +54,7 @@ import io.telegramkt.model.location.Location
 import io.telegramkt.model.location.Venue
 import io.telegramkt.model.location.builder.LocationRequestBuilder
 import io.telegramkt.model.location.builder.VenueRequestBuilder
+import io.telegramkt.model.mask.MaskPosition
 import io.telegramkt.model.media.input.MediaGroupBuilder
 import io.telegramkt.model.media.input.AlbumableMedia
 import io.telegramkt.model.media.input.InputMedia
@@ -73,6 +74,10 @@ import io.telegramkt.model.reaction.ReactionBuilder
 import io.telegramkt.model.reaction.ReactionType
 import io.telegramkt.model.star.StarAmount
 import io.telegramkt.model.sticker.Sticker
+import io.telegramkt.model.sticker.enums.StickerType
+import io.telegramkt.model.sticker.input.InputSticker
+import io.telegramkt.model.sticker.input.StickerFormat
+import io.telegramkt.model.sticker.set.StickerSet
 import io.telegramkt.model.story.InputStoryContent
 import io.telegramkt.model.story.InputStoryContentBuilder
 import io.telegramkt.model.story.Story
@@ -2695,6 +2700,175 @@ class TelegramBotClient(
             parameter("message_id", messageId)
             parameter("comment", comment)
         }
+    }
+
+    // ===== Working with stickers. =====
+
+    override suspend fun getStickerSet(name: String): StickerSet = call("getStickerSet") {
+        parameter("name", name)
+    }
+
+    override suspend fun getEmojiCustomStickers(customEmojiIds: List<String>): List<Sticker>
+        = call("getEmojiCustomStickers") {
+        parameter("custom_emoji_ids", customEmojiIds)
+    }
+
+    override suspend fun uploadStickerFile(
+        userId: Long,
+        sticker: InputFile,
+        stickerFormat: StickerFormat
+    ): File = call("uploadStickerFile") {
+        parameter("user_id", userId)
+        parameter("sticker", sticker)
+        parameter("sticker_format", stickerFormat)
+    }
+
+    override suspend fun createNewStickerSet(
+        userId: Long,
+        name: String,
+        title: String,
+        stickers: List<InputSticker>,
+        stickerType: StickerType,
+        needsRepainting: Boolean
+    ): Boolean {
+        require(name.length in 1..64) {
+            "Sticker set name must be between 1 and 64 characters"
+        }
+        require(title.length in 1..64) {
+            "Sticker set title must be between 1 and 64 characters"
+        }
+        require(stickers.size in 1..50) {
+            "Stickers must be between 1 and 50 items."
+        }
+
+        return call("createNewStickerSet") {
+            parameter("user_id", userId)
+            parameter("name", name)
+            parameter("title", title)
+            parameter("stickers", stickers)
+            parameter("sticker_type", stickerType)
+            parameter("needs_repainting", needsRepainting)
+        }
+    }
+
+    override suspend fun addStickerToSet(
+        userId: Long,
+        name: String,
+        sticker: InputSticker
+    ): Boolean = call("addStickerToSet") {
+        parameter("name", name)
+        parameter("user_id", userId)
+        parameter("sticker", sticker)
+    }
+
+    override suspend fun setStickerPositionInSet(sticker: String, position: Int): Boolean {
+        require(position >= 0) {
+            "Sticker set position must be greater than 0"
+        }
+
+        return call("setStickerPositionInSet") {
+            parameter("sticker", sticker)
+            parameter("position", position)
+        }
+    }
+
+    override suspend fun deleteStickerFromSet(sticker: String): Boolean
+        = call("deleteStickerFromSet") {
+            parameter("sticker", sticker)
+    }
+
+    override suspend fun replaceStickerInSet(
+        userId: Long,
+        name: String,
+        oldSticker: String,
+        sticker: InputSticker
+    ): Boolean = call("replaceStickerInSet") {
+        parameter("user_id", userId)
+        parameter("name", name)
+        parameter("old_sticker", oldSticker)
+        parameter("sticker", sticker)
+    }
+
+    override suspend fun setStickerEmojiList(
+        sticker: String,
+        emojiList: List<String>
+    ): Boolean {
+        require(emojiList.size in 1..20) {
+            "Emoji list must be between 1 and 20 items."
+        }
+
+        return call("setStickerEmojiList") {
+            parameter("sticker", sticker)
+            parameter("emoji_list", emojiList)
+        }
+    }
+
+    override suspend fun setStickerKeywords(
+        sticker: String,
+        keywords: List<String>?
+    ): Boolean {
+        if (keywords != null) {
+            require(keywords.size in 1..20) {
+                "Keywords must be between 1 and 20 items."
+            }
+            require(keywords.all { word -> word.length in 1..64 }) {
+                "Each keyword must be between 1 and 64 characters"
+            }
+            require(keywords.distinct().size == keywords.size) {
+                "Keywords must be unique. Duplicates: ${keywords.groupingBy { it }
+                    .eachCount()
+                    .filter { it.value > 1 }
+                    .keys}"
+            }
+        }
+
+        return call("setStickerKeywords") {
+            parameter("sticker", sticker)
+            parameter("keywords", keywords)
+        }
+    }
+
+    override suspend fun setStickerMaskPosition(
+        sticker: String,
+        maskPosition: MaskPosition?
+    ): Boolean = call("setStickerMaskPosition") {
+        parameter("sticker", sticker)
+        parameter("mask_position", maskPosition)
+    }
+
+    override suspend fun setStickerSetTitle(name: String, title: String): Boolean {
+        require(title.length in 1..64) {
+            "Sticker set title must be between 1 and 64 characters"
+        }
+
+        return call("setStickerMaskPosition") {
+            parameter("name", name)
+            parameter("title", title)
+        }
+    }
+
+    override suspend fun setStickerSetThumbnail(
+        name: String,
+        userId: Long,
+        format: StickerFormat,
+        thumbnail: InputFile?
+    ): Boolean = call("setStickerSetThumbnail") {
+        parameter("name", name)
+        parameter("user_id", userId)
+        parameter("format", format)
+        parameter("thumbnail", thumbnail)
+    }
+
+    override suspend fun setCustomEmojiStickerSetThumbnail(
+        name: String,
+        customEmojiId: String?
+    ): Boolean = call("setCustomEmojiStickerSetThumbnail") {
+        parameter("name", name)
+        parameter("custom_emoji_id", customEmojiId)
+    }
+
+    override suspend fun deleteStickerSet(name: String): Boolean  = call("deleteStickerSet") {
+        parameter("name", name)
     }
 
     fun updatesFlow(

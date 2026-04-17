@@ -28,6 +28,7 @@ import io.telegramkt.model.poll.Poll
 import io.telegramkt.model.poll.PollAnswer
 import io.telegramkt.model.reaction.MessageReactionCountUpdated
 import io.telegramkt.model.reaction.MessageReactionUpdated
+import io.telegramkt.model.sticker.Sticker
 import io.telegramkt.model.video.Video
 import io.telegramkt.model.video.VideoNote
 
@@ -66,6 +67,8 @@ typealias DocumentHandler = suspend BotContext.(document: Document, caption: Str
 
 typealias AudioHandler = suspend BotContext.(audio: Audio, caption: String?) -> Unit
 typealias VoiceHandler = suspend BotContext.(voice: Voice) -> Unit
+
+typealias StickerHandler = suspend BotContext.(sticker: Sticker) -> Unit
 
 // === Contats. ===
 typealias ContactHandler = suspend BotContext.(contact: Contact) -> Unit
@@ -141,6 +144,7 @@ class HandlerRegistry {
     private val onDocument = mutableListOf<DocumentHandler>()
     private val onAudio = mutableListOf<AudioHandler>()
     private val onVoice = mutableListOf<VoiceHandler>()
+    private val onSticker = mutableListOf<StickerHandler>()
 
     // === Contats. ===
     private val onContact = mutableListOf<ContactHandler>()
@@ -257,6 +261,10 @@ class HandlerRegistry {
 
     fun onVoice(handler: VoiceHandler) {
         onVoice.add(handler)
+    }
+
+    fun onSticker(handler: StickerHandler) {
+        onSticker.add(handler)
     }
 
     // === Contacts. ===
@@ -456,6 +464,11 @@ class HandlerRegistry {
                 ctx.message?.voice != null -> {
                     val voice = ctx.message?.voice!!
                     onVoice.forEach { it(ctx, voice) }
+                }
+
+                ctx.message?.sticker != null -> {
+                    val sticker = ctx.message?.sticker!!
+                    onSticker.forEach { it(ctx, sticker) }
                 }
 
                 // === Contacts. ===

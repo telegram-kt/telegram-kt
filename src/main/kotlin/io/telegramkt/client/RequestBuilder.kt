@@ -20,6 +20,9 @@ import io.telegramkt.model.media.input.InputMediaVideo
 import io.telegramkt.model.media.input.InputProfilePhoto
 import io.telegramkt.model.media.paid.InputPaidMedia
 import io.telegramkt.model.menu.button.MenuButton
+import io.telegramkt.model.sticker.input.InputSticker
+import io.telegramkt.model.sticker.input.StickerFormat
+import io.telegramkt.model.sticker.set.StickerSet
 import io.telegramkt.model.story.InputStoryContent
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
@@ -87,6 +90,8 @@ internal fun Json.buildJsonBody(params: Map<String, Any?>): JsonObject =
                 is MenuButton -> encodeToJsonElement(value)
                 is ChatAdministratorRights -> encodeToJsonElement(value)
                 is InlineQueryResult -> encodeToJsonElement(value)
+                is StickerSet -> encodeToJsonElement(value)
+                is InputSticker -> encodeToJsonElement(value)
                 else -> encodeToJsonElement(value)
             }
             put(key, element)
@@ -109,6 +114,7 @@ private fun FormBuilder.appendParameter(json: Json, key: String, value: Any?) {
         is InputFile.StringValue -> append(key, value.value)
         is InputProfilePhoto -> appendInputProfilePhoto(json, key, value)
         is InputStoryContent -> appendInputStoryContent(json, key, value)
+        is StickerFormat -> append(key, value.apiValue)
         is String -> append(key, value)
         is Number -> append(key, value.toString())
         is Boolean -> append(key, value.toString())
