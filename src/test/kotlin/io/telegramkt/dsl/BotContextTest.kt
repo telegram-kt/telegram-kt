@@ -9,6 +9,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
+import kotlin.time.Instant
 
 /**
  * Unit tests for BotContext and message handling.
@@ -25,7 +26,7 @@ class BotContextTest {
         val user = User(id = 12345, isBot = false, firstName = "Test")
         val message = Message(
             id = 1,
-            date = 1234567890,
+            date = Instant.fromEpochSeconds(1234567890),
             chat = chat,
             from = user,
             text = "/start test"
@@ -48,7 +49,7 @@ class BotContextTest {
         )
         val message = Message(
             id = 1,
-            date = 1234567890,
+            date = Instant.fromEpochSeconds(1234567890),
             chat = chat,
             from = user,
             text = "Forwarded",
@@ -68,7 +69,7 @@ class BotContextTest {
         )
         val message = Message(
             id = 1,
-            date = 1234567890,
+            date = Instant.fromEpochSeconds(1234567890),
             chat = chat,
             text = "Original"
         )
@@ -85,10 +86,10 @@ class BotContextTest {
         )
         val message = Message(
             id = 1,
-            date = 1234567890,
+            date = Instant.fromEpochSeconds(1234567890),
             chat = chat,
             text = "Edited message",
-            editDate = 1234567900
+            editDate = Instant.fromEpochSeconds(1234567900)
         )
 
         assertTrue(message.isEdited)

@@ -9,6 +9,8 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Instant
 
 /**
  * Unit tests for the Message entity.
@@ -34,7 +36,7 @@ class MessageTest {
     fun `message with text hasText returns true`() {
         val message = Message(
             id = 1,
-            date = 1234567890,
+            date = Instant.fromEpochSeconds(1234567890),
             chat = createBaseChat(),
             text = "Hello, world!"
         )
@@ -46,7 +48,7 @@ class MessageTest {
     fun `message with empty text hasText returns false`() {
         val message = Message(
             id = 1,
-            date = 1234567890,
+            date = Instant.fromEpochSeconds(1234567890),
             chat = createBaseChat(),
             text = ""
         )
@@ -58,7 +60,7 @@ class MessageTest {
     fun `message with null text hasText returns false`() {
         val message = Message(
             id = 1,
-            date = 1234567890,
+            date = Instant.fromEpochSeconds(1234567890),
             chat = createBaseChat()
         )
 
@@ -69,10 +71,10 @@ class MessageTest {
     fun `message isEdited returns true when editDate is present`() {
         val message = Message(
             id = 1,
-            date = 1234567890,
+            date = Instant.fromEpochSeconds(1234567890),
             chat = createBaseChat(),
             text = "Original",
-            editDate = 1234567900
+            editDate = Instant.fromEpochSeconds(1234567900)
         )
 
         assertTrue(message.isEdited)
@@ -82,7 +84,7 @@ class MessageTest {
     fun `message isEdited returns false when editDate is null`() {
         val message = Message(
             id = 1,
-            date = 1234567890,
+            date = Instant.fromEpochSeconds(1234567890),
             chat = createBaseChat(),
             text = "Not edited"
         )
@@ -94,7 +96,7 @@ class MessageTest {
     fun `message isCommand returns true for bot command`() {
         val message = Message(
             id = 1,
-            date = 1234567890,
+            date = Instant.fromEpochSeconds(1234567890),
             chat = createBaseChat(),
             text = "/start"
         )
@@ -106,7 +108,7 @@ class MessageTest {
     fun `message isCommand returns false for regular text`() {
         val message = Message(
             id = 1,
-            date = 1234567890,
+            date = Instant.fromEpochSeconds(1234567890),
             chat = createBaseChat(),
             text = "Hello"
         )
@@ -118,7 +120,7 @@ class MessageTest {
     fun `message with photo hasMedia returns true`() {
         val message = Message(
             id = 1,
-            date = 1234567890,
+            date = Instant.fromEpochSeconds(1234567890),
             chat = createBaseChat(),
             photo = listOf()
         )
@@ -130,7 +132,7 @@ class MessageTest {
     fun `message with text only hasMedia returns false`() {
         val message = Message(
             id = 1,
-            date = 1234567890,
+            date = Instant.fromEpochSeconds(1234567890),
             chat = createBaseChat(),
             text = "Just text"
         )

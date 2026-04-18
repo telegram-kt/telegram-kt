@@ -50,8 +50,10 @@ import io.telegramkt.model.web.ExternalReplyInfo
 import io.telegramkt.model.web.WebAppData
 import io.telegramkt.model.message.TextQuote
 import io.telegramkt.model.writeaccess.WriteAccessAllowed
+import io.telegramkt.serialization.UnixTimestampSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlin.time.Instant
 
 /**
  * This object represents a message.
@@ -92,9 +94,11 @@ data class Message(
      */
     @SerialName("sender_business_bot") val senderBusinessBot: User? = null,
     /**
-     * Date the message was sent in Unix time
+     * Date the message was sent.
      */
-    @SerialName("date") val date: Int,
+    @SerialName("date")
+    @Serializable(with = UnixTimestampSerializer::class)
+    val date: Instant,
     /**
      * Optional. Unique identifier of the business connection from which the message was received.
      * If non-empty, the message belongs to a specific connection of the business account.
@@ -142,9 +146,11 @@ data class Message(
      */
     @SerialName("via_bot") val viaBot: User? = null,
     /**
-     * Optional. Date the message was last edited in Unix time
+     * Optional. Date the message was last edited.
      */
-    @SerialName("edit_date") val editDate: Int? = null,
+    @SerialName("edit_date")
+    @Serializable(with = UnixTimestampSerializer::class)
+    val editDate: Instant? = null,
     /**
      * Optional. True, if the message can't be forwarded
      */

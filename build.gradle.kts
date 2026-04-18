@@ -1,5 +1,7 @@
 import org.gradle.plugins.signing.Sign
+import org.jetbrains.dokka.gradle.tasks.DokkaGenerateTask
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.net.URI
 
 plugins {
     kotlin("jvm") version "2.2.20"
@@ -7,10 +9,12 @@ plugins {
     id("com.gradleup.nmcp") version "0.0.9"
     `maven-publish`
     signing
+    id("org.jetbrains.dokka") version "2.2.0"
+    id("org.jetbrains.dokka-javadoc") version "2.2.0"
 }
 
 group = "io.github.telegram-kt"
-version = "0.1.1"
+version = "0.1.2"
 
 repositories {
     mavenCentral()
@@ -51,15 +55,44 @@ kotlin {
     }
 }
 
-// === Sources and Javadoc JARs for publication ===
-val sourcesJar by tasks.creating(Jar::class) {
-    archiveClassifier.set("sources")
-    from(sourceSets.main.get().allSource)
+dokka {
+    dokkaPublications.html {
+        moduleName.set("telegram-kt")
+        outputDirectory.set(layout.buildDirectory.dir("dokka/html"))
+        includes.from("README.md")
+    }
+
+    dokkaPublications.javadoc {
+        outputDirectory.set(layout.buildDirectory.dir("dokka/javadoc"))
+    }
+
+    dokkaSourceSets.main {
+        sourceLink {
+            localDirectory.set(file("src/main/kotlin"))
+            remoteUrl.set(URI("https://github.com/telegram-kt/telegram-kt/tree/master"))
+            remoteLineSuffix.set("#L")
+        }
+
+        externalDocumentationLinks {
+            register("coroutines") {
+                url.set(URI("https://kotlinlang.org/api/kotlinx.coroutines/"))
+            }
+            register("ktor") {
+                url.set(URI("https://api.ktor.io/"))
+            }
+        }
+    }
 }
 
-val javadocJar by tasks.creating(Jar::class) {
+val javadocJar by tasks.registering(Jar::class) {
     archiveClassifier.set("javadoc")
-    from(tasks.named("javadoc"))
+    from(tasks.named<DokkaGenerateTask>("dokkaGeneratePublicationJavadoc").flatMap { it.outputDirectory })
+}
+
+// === Sources and Javadoc JARs for publication ===
+val sourcesJar by tasks.registering(Jar::class) {
+    archiveClassifier.set("sources")
+    from(kotlin.sourceSets.main.get().kotlin)
 }
 
 publishing {

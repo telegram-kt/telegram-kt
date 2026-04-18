@@ -6,9 +6,19 @@ on:
   pull_request:
     branches: [ master, main ]
 
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
 jobs:
-  build:
+  build-and-docs:
     runs-on: ubuntu-latest
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
     steps:
       - uses: actions/checkout@v4
 
@@ -21,18 +31,24 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
 
-      - name: Make gradlew executable
-        run: chmod +x gradlew
-
-      - name: Build
+      - name: Build & Test
         run: ./gradlew build
 
-      - name: Run tests
-        run: ./gradlew test
+      - name: Generate Dokka
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        run: ./gradlew dokkaGeneratePublicationHtml
 
-      - name: Upload test results
-        uses: actions/upload-artifact@v4
-        if: always()
+      - name: Setup Pages
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        uses: actions/upload-pages-artifact@v3
         with:
-          name: test-results
-          path: build/reports/tests/
+          path: build/dokka/html
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        uses: actions/deploy-pages@v4

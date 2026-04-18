@@ -22,6 +22,7 @@ import io.telegramkt.model.forum.topic.TopicIconColor
 import io.telegramkt.model.gift.AcceptedGiftTypes
 import io.telegramkt.model.gift.Gifts
 import io.telegramkt.model.gift.owned.OwnedGifts
+import io.telegramkt.model.callback.CallbackQuery
 import io.telegramkt.model.inline.InlineQueryResult
 import io.telegramkt.model.keyboard.button.prepared.PreparedKeyboardButton
 import io.telegramkt.model.keyboard.button.prepared.PreparedKeyboardButtonType
@@ -31,6 +32,8 @@ import io.telegramkt.model.keyboard.reply.parameters.ReplyParameters
 import io.telegramkt.model.mask.MaskPosition
 import io.telegramkt.model.media.input.AlbumableMedia
 import io.telegramkt.model.media.input.InputMedia
+import io.telegramkt.model.media.input.InputMediaPhoto
+import io.telegramkt.model.media.input.InputMediaVideo
 import io.telegramkt.model.media.input.InputProfilePhoto
 import io.telegramkt.model.menu.button.MenuButton
 import io.telegramkt.model.message.Message
@@ -59,6 +62,8 @@ import io.telegramkt.model.story.Story
 import io.telegramkt.model.story.StoryActivePeriod
 import io.telegramkt.model.story.area.StoryArea
 import io.telegramkt.model.web.SentWebAppMessage
+import io.telegramkt.exception.TelegramApiException
+import io.telegramkt.model.keyboard.inline.InlineQueryResultsButton
 import kotlin.time.Duration
 import kotlin.time.Instant
 
@@ -92,16 +97,55 @@ interface TelegramApi {
     // ==================== MESSAGES. ====================
 
     /**
-     * Send text message.
+     * Send a text message to a chat.
      *
-     * Example:
-     * ```
-     * client.sendMessage(
-     *     chatId = ChatId.ById(123456),
-     *     text = "Hello <b>World</b>",
-     *     parseMode = ParseMode.HTML
+     * Samples:
+     * ```kotlin
+     * // Simple text
+     * bot.sendMessage(ChatId.ById(123456), "Hello!")
+     *
+     * // With HTML formatting
+     * bot.sendMessage(
+     *      chatId = ChatId.ByUsername("@channel"),
+     *      text = "Check this: <a href=\"https://example.com\">link</a>",
+     *      parseMode = ParseMode.HTML
      * )
-     * ```
+     *
+     * // With custom entities (more control than parseMode)
+     * bot.sendMessage(
+     *      chatId = ChatId.ById(123456),
+     *      text = "Hello bold world",
+     *      entities = listOf(
+     *          MessageEntity(type = "bold", offset = 6, length = 4)
+     *      )
+     * )
+     *```
+     *
+     * Supports HTML, MarkdownV2, and plain text formatting via [parseMode].
+     * For advanced formatting, use [entities] instead of [parseMode].
+     *
+     * @param chatId Unique identifier for the target chat or username (@channel)
+     * @param text Text of the message to be sent (1-4096 characters after entities parsing)
+     * @param parseMode Mode for parsing entities: [ParseMode.HTML], [ParseMode.MARKDOWN_V2], or null for plain text
+     * @param entities List of special entities (bold, italic, links, etc.). If specified, [parseMode] is ignored
+     * @param disableWebPagePreview Disables link previews for links in this message
+     * @param disableNotification Sends the message silently (users receive no notification)
+     * @param protectContent Protects the contents of the sent message from forwarding and saving
+     * @param replyToMessageId If the message is a reply, ID of the original message
+     * @param allowSendingWithoutReply Pass True if the message should be sent even if the replied-to message is deleted
+     * @param replyMarkup Additional interface options: [InlineKeyboardMarkup], [io.telegramkt.model.keyboard.reply.ReplyKeyboardMarkup], etc.
+     * @param businessConnectionId Unique identifier of the business connection (for business accounts)
+     * @param messageEffectId Unique identifier of the message effect to apply
+     * @return The sent [Message]
+     *
+     * @throws TelegramApiException if:
+     *   - chat not found
+     *   - text is empty or too long
+     *   - bot has no rights to send messages
+     *
+     * @see editMessageText
+     * @see sendPhoto
+     * @see answerCallbackQuery
      */
     suspend fun sendMessage(
         chatId: ChatId,
@@ -118,6 +162,42 @@ interface TelegramApi {
         messageEffectId: String? = null,
     ): Message
 
+    /**
+     * Save a message as a draft in a chat.
+     *
+     * Samples:
+     * ```kotlin
+     * // Save a draft with HTML formatting
+     * client.sendMessageDraft(
+     *     chatId = 123456L,
+     *     draftId = "welcome_msg",
+     *     text = "Hello <b>{name}</b>! Use /start to begin.",
+     *     parseMode = ParseMode.HTML
+     * )
+     *
+     * // Later: send the draft (implementation depends on your logic)
+     * // client.sendSavedDraft(chatId, "welcome_msg")
+     * ```
+     *
+     * Drafts are visible only to the bot and can be edited or sent later.
+     * Useful for pre-filling messages in business accounts or scheduled posts.
+     *
+     * @param chatId Unique identifier for the target chat
+     * @param draftId Unique identifier for this draft (1-64 characters)
+     * @param text Text of the draft message (1-4096 characters)
+     * @param messageThreadId Identifier of the message thread (for supergroups)
+     * @param parseMode Formatting mode: [ParseMode.HTML], [ParseMode.MARKDOWN_V2], or null
+     * @param entities List of special entities (bold, italic, links). If specified, [parseMode] is ignored
+     * @return True if draft was saved successfully
+     *
+     * @throws TelegramApiException if:
+     *   - chat not found or draftId already exists
+     *   - text is empty or too long
+     *   - bot has no rights to save drafts
+     *
+     * @see sendMessage
+     * @see editMessageText
+     */
     suspend fun sendMessageDraft(
         chatId: Long,
         draftId: Int,
@@ -128,8 +208,55 @@ interface TelegramApi {
     ): Boolean
 
     /**
-     * Edit text of existing message.
-     * Works for both regular and inline messages.
+     * Edit text or game message of an existing message.
+     *
+     * Samples:
+     * ```kotlin
+     * // Edit a regular message
+     * client.editMessageText(
+     *     chatId = ChatId.ById(123456),
+     *     messageId = 789,
+     *     text = "✅ Updated: Order #123 shipped!",
+     *     parseMode = ParseMode.HTML
+     * )
+     *
+     * // Edit an inline message (via callback query)
+     * client.editMessageText(
+     *     inlineMessageId = callbackQuery.inlineMessageId,
+     *     text = "🔄 Loading...",
+     *     replyMarkup = InlineKeyboardMarkup(...)
+     * )
+     * ```
+     *
+     * Works for messages sent by the bot in:
+     * • Private chats
+     * • Group chats (if bot has edit rights)
+     * • Channel posts (if bot is admin)
+     * • Inline messages (via [inlineMessageId])
+     *
+     * Cannot edit messages older than 48 hours, or messages with media (use [editMessageCaption] or [editMessageMedia]).
+     *
+     * @param chatId Target chat ID (required for regular messages, null for inline)
+     * @param messageId ID of message to edit (required for regular messages, null for inline)
+     * @param inlineMessageId Identifier of inline message (required if chatId/messageId not provided)
+     * @param text New text of the message (1-4096 characters after entities parsing)
+     * @param parseMode Formatting mode: [ParseMode.HTML], [ParseMode.MARKDOWN_V2], or null for plain text
+     * @param entities List of special entities. If specified, [parseMode] is ignored
+     * @param disableWebPagePreview Disable link previews in this message
+     * @param replyMarkup New inline keyboard for the message (null to remove keyboard)
+     * @param businessConnectionId Unique identifier of the business connection (for business accounts)
+     * @return The edited [Message] (or [Boolean] for inline messages)
+     *
+     * @throws TelegramApiException if:
+     *   - message not found or cannot be edited
+     *   - text is empty or too long
+     *   - bot has no edit rights in chat
+     *   - message is older than 48 hours
+     *
+     * @see sendMessage
+     * @see editMessageCaption
+     * @see editMessageMedia
+     * @see deleteMessage
      */
     suspend fun editMessageText(
         chatId: ChatId? = null,
@@ -144,8 +271,49 @@ interface TelegramApi {
     ): Message
 
     /**
-     * Edit caption of existing message.
-     * Works for both regular and inline messages.
+     * Edit caption of a message with media (photo, video, document, etc.).
+     *
+     * Samples:
+     * ```kotlin
+     * // Update caption with new info
+     * client.editMessageCaption(
+     *     chatId = chatId,
+     *     messageId = messageId,
+     *     caption = "📸 Photo by @user\n👍 Likes: 42",
+     *     parseMode = ParseMode.HTML,
+     *     showCaptionAboveMedia = true
+     * )
+     *
+     * // Remove caption entirely
+     * client.editMessageCaption(
+     *     chatId = chatId,
+     *     messageId = messageId,
+     *     caption = ""  // empty string removes caption
+     * )
+     * ```
+     *
+     * Works for messages sent by the bot in private chats, groups, channels, or inline results.
+     * Cannot edit captions of messages sent by other users or older than 48 hours.
+     *
+     * @param chatId Target chat ID (required for regular messages, null for inline)
+     * @param messageId ID of message to edit (required for regular messages, null for inline)
+     * @param inlineMessageId Identifier of inline message (required if chatId/messageId not provided)
+     * @param caption New caption text (0-1024 characters). Pass empty string to remove caption
+     * @param parseMode Formatting mode for caption: [ParseMode.HTML], [ParseMode.MARKDOWN_V2], or null
+     * @param captionEntities List of special entities for caption. If specified, [parseMode] is ignored
+     * @param showCaptionAboveMedia Show caption above media instead of below (for photos/videos)
+     * @param replyMarkup New inline keyboard (null to remove, keep existing if not specified)
+     * @param businessConnectionId Unique identifier of the business connection
+     * @return The edited [Message] (or [Boolean] for inline messages)
+     *
+     * @throws TelegramApiException if:
+     *   - message not found or has no media
+     *   - caption is too long (>1024 chars)
+     *   - bot has no edit rights
+     *
+     * @see sendPhoto
+     * @see editMessageText
+     * @see editMessageMedia
      */
     suspend fun editMessageCaption(
         chatId: ChatId?,
@@ -159,6 +327,54 @@ interface TelegramApi {
         businessConnectionId: String? = null,
     ): Message
 
+    /**
+     * Replace media in an existing message (photo → video, document → photo, etc.).
+     *
+     * Samples:
+     * ```kotlin
+     * // Replace photo with another photo (by file_id)
+     * val newMedia = InputMediaPhoto(
+     *     media = InputFile.fromId("AgACAgIA..."),
+     *     caption = "🔄 Updated photo!",
+     *     parseMode = ParseMode.HTML
+     * )
+     * client.editMessageMedia(
+     *     chatId = chatId,
+     *     messageId = messageId,
+     *     media = newMedia
+     * )
+     *
+     * // Replace via URL
+     * val newMedia = InputMediaPhoto(
+     *     media = InputFile.fromUrl("https://example.com/new.jpg"),
+     *     caption = "Fresh from the web!"
+     * )
+     * ```
+     *
+     * Works for messages with media sent by the bot. The new media must be of a compatible type
+     * (e.g., photo ↔ photo, video ↔ video). Cannot change message type (e.g., text → photo).
+     *
+     * [InputMedia] must use `file_id`/ `https://` URL/local files (`fromPath`, `fromBytes`)
+     *
+     *
+     * @param chatId Target chat ID (required for regular messages, null for inline)
+     * @param messageId ID of message to edit (required for regular messages, null for inline)
+     * @param inlineMessageId Identifier of inline message (required if chatId/messageId not provided)
+     * @param media New media to replace the old one ([InputMediaPhoto], [InputMediaVideo], etc.)
+     * @param replyMarkup New inline keyboard (null to keep existing)
+     * @param businessConnectionId Unique identifier of the business connection
+     * @return The edited [Message] (or [Boolean] for inline messages)
+     *
+     * @throws TelegramApiException if:
+     *   - message not found or has no media
+     *   - media type is incompatible with original
+     *   - media URL/file_id is invalid
+     *   - bot has no edit rights
+     *
+     * @see sendPhoto
+     * @see editMessageCaption
+     * @see InputMedia
+     */
     suspend fun editMessageMedia(
         chatId: ChatId?,
         messageId: Int?,
@@ -168,6 +384,51 @@ interface TelegramApi {
         businessConnectionId: String? = null,
     ): Message
 
+    /**
+     * Edit only the inline keyboard of a message (without changing text/media).
+     *
+     * Samples:
+     * ```kotlin
+     * // Update button text after click
+     * val newKeyboard = inlineKeyboard {
+     *     row(
+     *         callback("✅ Done", "done")
+     *     )
+     * }
+     *
+     * client.editMessageReplyMarkup(
+     *     chatId = chatId,
+     *     messageId = messageId,
+     *     replyMarkup = newKeyboard
+     * )
+     *
+     * // Remove keyboard entirely
+     * client.editMessageReplyMarkup(
+     *     chatId = chatId,
+     *     messageId = messageId,
+     *     replyMarkup = null  // removes keyboard
+     * )
+     * ```
+     *
+     * Useful for dynamic buttons: progress indicators, pagination, multi-step forms.
+     * Works for messages sent by the bot in any chat type or inline messages.
+     *
+     * @param chatId Target chat ID (required for regular messages, null for inline)
+     * @param messageId ID of message to edit (required for regular messages, null for inline)
+     * @param inlineMessageId Identifier of inline message (required if chatId/messageId not provided)
+     * @param replyMarkup New inline keyboard, or null to remove keyboard entirely
+     * @param businessConnectionId Unique identifier of the business connection
+     * @return The edited [Message] (or [Boolean] for inline messages)
+     *
+     * @throws TelegramApiException if:
+     *   - message not found or has no keyboard
+     *   - bot has no edit rights
+     *   - message is older than 48 hours
+     *
+     * @see answerCallbackQuery
+     * @see editMessageText
+     * @see InlineKeyboardMarkup
+     */
     suspend fun editMessageReplyMarkup(
         chatId: ChatId?,
         messageId: Int?,
@@ -177,11 +438,44 @@ interface TelegramApi {
     ): Message
 
     /**
-     * Delete message from chat.
+     * Delete a message from a chat.
      *
-     * @param chatId Chat where message exists
-     * @param messageId Message to delete
-     * @return True on success
+     * Samples:
+     * ```kotlin
+     * // Delete a message after processing
+     * val msg = client.sendMessage(chatId, "Processing...")
+     * doWork()
+     * client.deleteMessage(chatId, msg.id)
+     *
+     * // Delete user message in admin bot (if permitted)
+     * onCommand("del") { args ->
+     *     val targetMsgId = args.firstOrNull()?.toIntOrNull()
+     *     if (targetMsgId != null && isAdmin(ctx)) {
+     *         client.deleteMessage(chatId!!, targetMsgId)
+     *         reply("🗑️ Deleted")
+     *     }
+     * }
+     * ```
+     *
+     * Works for:
+     * • Messages sent by the bot (always deletable)
+     * • Messages in private chats (bot can delete its own)
+     * • Messages in groups/channels (if bot has delete rights)
+     * • Service messages (only if bot is admin)
+     *
+     * Cannot delete messages older than 48 hours in groups (Telegram limitation).
+     *
+     * @param chatId Chat where the message exists
+     * @param messageId ID of the message to delete
+     * @return True if message was deleted successfully
+     *
+     * @throws TelegramApiException if:
+     *   - message or chat not found
+     *   - bot has no delete rights
+     *   - message is too old to delete
+     *
+     * @see deleteMessages
+     * @see editMessageText
      */
     suspend fun deleteMessage(
         chatId: ChatId,
@@ -189,11 +483,42 @@ interface TelegramApi {
     ): Boolean
 
     /**
-     * Delete messages from chat.
+     * Delete multiple messages (1-100) from a chat in a single request.
      *
-     * @param chatId Chat where message exists
-     * @param messageIds Messages to delete(1-100)
-     * @return True on success
+     * More efficient than calling [deleteMessage] in a loop.
+     * Messages are deleted in order; if one fails, others still proceed.
+     *
+     * Same limitations as [deleteMessage]: bot can always delete its own messages,
+     * but needs admin rights to delete others' messages in groups.
+     *
+     * @param chatId Chat where messages exist
+     * @param messageIds List of message IDs to delete (must contain 1-100 unique IDs)
+     * @return True if all messages were deleted successfully
+     *
+     * @throws IllegalArgumentException if messageIds is empty or >100 items
+     * @throws TelegramApiException if:
+     *   - chat not found
+     *   - bot lacks delete rights for any message
+     *   - any message is too old to delete
+     *
+     * Samples:
+     * ```kotlin
+     * // Bulk delete bot's own messages
+     * val messageIds = listOf(101, 102, 103, 104)
+     * client.deleteMessages(chatId, messageIds)
+     *
+     * // Clean up after command with error handling
+     * try {
+     *     client.deleteMessages(chatId, idsToDelete)
+     * } catch (e: TelegramApiException) {
+     *     println("Partial delete: ${e.message}")
+     *     // Handle which messages failed if needed
+     * }
+     * ```
+     *
+     * @see deleteMessage
+     * @see forwardMessages
+     * @see copyMessages
      */
     suspend fun deleteMessages(
         chatId: ChatId,
@@ -201,11 +526,54 @@ interface TelegramApi {
     ): Boolean
 
     /**
-     * Forward message of any kind.
-     * Service messages can't be forwarded.
+     * Forward a message of any kind from one chat to another.
      *
-     * @param fromChatId Original chat
-     * @param messageId Message to forward
+     * Samples:
+     * ```kotlin
+     * // Simple forward
+     * client.forwardMessage(
+     *     chatId = ChatId.ById(adminChatId),
+     *     fromChatId = ChatId.ById(userChatId),
+     *     messageId = reportedMessageId
+     * )
+     *
+     * // Forward with protection (anti-leak)
+     * client.forwardMessage(
+     *     chatId = privateChatId,
+     *     fromChatId = sourceChatId,
+     *     messageId = messageId,
+     *     protectContent = true  // users can't forward/save this
+     * )
+     * ```
+     *
+     * Forwarded messages retain:
+     * • Original sender info ("Forwarded from @username")
+     * • Media, captions, formatting
+     * • Reply markup (inline keyboards)
+     *
+     * Service messages (pinned, chat changes, etc.) cannot be forwarded.
+     * Messages from secret chats cannot be forwarded at all.
+     *
+     * @param chatId Target chat where message will be forwarded
+     * @param fromChatId Source chat where message currently exists
+     * @param messageId ID of the message to forward
+     * @param messageThreadId Thread ID in target chat (for supergroups with topics)
+     * @param directMessagesTopicId Topic ID for DMs with business accounts
+     * @param videoStartTimestamp Start timestamp for video messages (in seconds)
+     * @param disableNotification Send silently (no notification to users)
+     * @param protectContent Prevent forwarding/saving of the forwarded message
+     * @param messageEffectId Message effect to apply (premium feature)
+     * @param suggestedPostParameters Scheduling options for channel posts
+     * @return The forwarded [Message] in the target chat
+     *
+     * @throws TelegramApiException if:
+     *   - source or target chat not found
+     *   - message cannot be forwarded (service message, secret chat)
+     *   - bot lacks send rights in target chat
+     *
+     * @see forwardMessages
+     * @see copyMessage
+     * @see Message
      */
     suspend fun forwardMessage(
         chatId: ChatId,
@@ -221,11 +589,51 @@ interface TelegramApi {
     ): Message
 
     /**
-     * Forward multiple messages (1-100).
+     * Forward multiple messages (1-100) from one chat to another in a single request.
      *
-     * Messages are forwarded in order of list.
+     * Samples:
+     * ```kotlin
+     * // Forward a conversation snippet to admin
+     * val messageIds = listOf(100, 101, 102)  // consecutive messages
+     * client.forwardMessages(
+     *     chatId = adminChatId,
+     *     fromChatId = userChatId,
+     *     messageIds = messageIds,
+     *     protectContent = true
+     * )
      *
-     * @param messageIds List of 1-100 message IDs in chat fromChatId
+     * // Bulk forward with error handling
+     * try {
+     *     client.forwardMessages(chatId, fromChatId, ids)
+     * } catch (e: TelegramApiException) {
+     *     println("Forward failed: ${e.message}")
+     *     // Consider falling back to individual forwards if needed
+     * }
+     * ```
+     *
+     * More efficient than looping [forwardMessage]. Messages preserve their order
+     * and original metadata (sender, timestamp, media).
+     *
+     * If any message fails to forward (e.g., service message), the entire request
+     * may fail depending on Telegram API behavior — handle errors accordingly.
+     *
+     * @param chatId Target chat for forwarded messages
+     * @param fromChatId Source chat containing messages to forward
+     * @param messageIds List of message IDs to forward (1-100 unique IDs, in desired order)
+     * @param messageThreadId Thread ID in target chat (for supergroup topics)
+     * @param directMessagesTopicId Topic ID for business DMs
+     * @param disableNotification Send all messages silently
+     * @param protectContent Prevent forwarding/saving of all forwarded messages
+     * @return The [Message] object of the last forwarded message (Telegram API behavior)
+     *
+     * @throws IllegalArgumentException if messageIds is empty or >100 items
+     * @throws TelegramApiException if:
+     *   - any message cannot be forwarded
+     *   - bot lacks rights in source or target chat
+     *
+     * @see forwardMessage
+     * @see copyMessages
+     * @see deleteMessages
      */
     suspend fun forwardMessages(
         chatId: ChatId,
@@ -238,8 +646,65 @@ interface TelegramApi {
     ): Message
 
     /**
-     * Copy message (send without forward header).
-     * Returns MessageId of sent message.
+     * Copy a message to another chat without the "Forwarded from" header.
+     *
+     * Samples:
+     * ```kotlin
+     * // Copy with new caption and keyboard
+     * client.copyMessage(
+     *     chatId = publicChannelId,
+     *     fromChatId = privateChatId,
+     *     messageId = messageId,
+     *     caption = "📢 From our community:\n\n{original_caption}",
+     *     parseMode = ParseMode.HTML,
+     *     replyMarkup = InlineKeyboardMarkup(
+     *         listOf(listOf(InlineKeyboardButton("👍 Vote", callbackData = "vote:123")))
+     *     )
+     * )
+     *
+     * // Anonymous repost (no original sender info)
+     * client.copyMessage(
+     *     chatId = broadcastChannel,
+     *     fromChatId = userChat,
+     *     messageId = messageId,
+     *     caption = "🗞️ Community submission",  // original caption replaced
+     *     protectContent = true  // prevent further sharing
+     * )
+     * ```
+     *
+     * The copied message appears as if sent directly by the bot:
+     * • No "Forwarded from @username" label
+     * • Bot can modify caption, add keyboard, change formatting
+     * • Original sender info is lost (unless manually added to caption)
+     *
+     * Useful for: content aggregation, moderated reposts, anonymized sharing.
+     *
+     * @param chatId Target chat where message will be copied
+     * @param fromChatId Source chat containing the original message
+     * @param messageId ID of the message to copy
+     * @param messageThreadId Thread ID in target chat (for supergroup topics)
+     * @param directMessagesTopicId Topic ID for business DMs
+     * @param videoStartTimestamp Start timestamp for video messages
+     * @param caption New caption for the copied message (overrides original)
+     * @param parseMode Formatting mode for new caption
+     * @param captionEntities Entities for new caption (overrides parseMode if specified)
+     * @param showCaptionAboveMedia Show caption above media (for photos/videos)
+     * @param disableNotification Send silently
+     * @param protectContent Prevent forwarding/saving of the copied message
+     * @param allowPaidBroadcast Allow sending to paid broadcast channels
+     * @param messageEffectId Message effect to apply
+     * @param replyParameters Reply configuration (quote, etc.)
+     * @param replyMarkup Inline/reply keyboard for the copied message
+     * @return [MessageId] of the newly created message in target chat
+     *
+     * @throws TelegramApiException if:
+     *   - source or target chat not found
+     *   - message cannot be copied (service message, restricted content)
+     *   - bot lacks send rights in target chat
+     *
+     * @see forwardMessage
+     * @see copyMessages
+     * @see sendMessage
      */
     suspend fun copyMessage(
         chatId: ChatId,
@@ -261,7 +726,49 @@ interface TelegramApi {
     ): MessageId
 
     /**
-     * Copy multiple messages (1-100).
+     * Copy multiple messages (1-100) to another chat without "Forwarded from" headers.
+     *
+     * Samples:
+     * ```kotlin
+     * // Bulk anonymized repost
+     * val messageIds = listOf(200, 201, 202)
+     * val results = client.copyMessages(
+     *     chatId = publicChannel,
+     *     fromChatId = privateChat,
+     *     messageIds = messageIds,
+     *     removeCaption = true,  // strip original captions
+     *     protectContent = true
+     * )
+     * println("Copied ${results.size} messages, first ID: ${results.firstOrNull()?.messageId}")
+     *
+     * // Copy with global caption prefix
+     * // (Note: per-message captions require individual copyMessage calls)
+     * ```
+     *
+     * Efficient batch version of [copyMessage]. Each message is copied independently
+     * with optional global parameters (caption, keyboard, etc.).
+     *
+     * Original sender info is lost for all copied messages.
+     * If per-message customization is needed, use individual [copyMessage] calls.
+     *
+     * @param chatId Target chat for copied messages
+     * @param fromChatId Source chat containing messages to copy
+     * @param messageIds List of message IDs to copy (1-100 unique IDs, in order)
+     * @param messageThreadId Thread ID in target chat (for supergroup topics)
+     * @param directMessagesTopicId Topic ID for business DMs
+     * @param disableNotification Send all messages silently
+     * @param protectContent Prevent forwarding/saving of all copied messages
+     * @param removeCaption Remove captions from all copied media messages
+     * @return List of [MessageId] for each newly created message (in same order as input)
+     *
+     * @throws IllegalArgumentException if messageIds is empty or >100 items
+     * @throws TelegramApiException if:
+     *   - any message cannot be copied
+     *   - bot lacks rights in source or target chat
+     *
+     * @see copyMessage
+     * @see forwardMessages
+     * @see deleteMessages
      */
     suspend fun copyMessages(
         chatId: ChatId,
@@ -277,12 +784,53 @@ interface TelegramApi {
     // ==================== CALLBACKS. ====================
 
     /**
-     * Answer callback query from inline keyboard.
+     * Send a response to a callback query from an inline keyboard button.
      *
-     * @param text Notification text (1-200 chars), shown as alert if showAlert=true
-     * @param showAlert Show alert instead of notification
-     * @param url URL to open (for login URLs or game URLs)
-     * @param cacheTime Cache answer for up to specified seconds
+     * Samples:
+     * ```kotlin
+     * // Simple acknowledgment toast
+     * onCallback("buy:") { data ->
+     *     answerCallback(text = "✅ Added to cart", cacheTime = 60)
+     * }
+     *
+     * // Alert modal for important action
+     * onCallback("delete:") { data ->
+     *     answerCallback(
+     *         text = "⚠️ This action cannot be undone!",
+     *         showAlert = true
+     *     )
+     * }
+     *
+     * // Open URL for OAuth flow
+     * onCallback("login") {
+     *     answerCallback(
+     *         url = "https://example.com/auth?token=xyz",
+     *         cacheTime = 300.seconds
+     *     )
+     * }
+     * ```
+     *
+     * This method is **required** when a user presses an inline keyboard button with `callback_data`.
+     * Without calling this, the user will see a loading indicator indefinitely.
+     *
+     * Must be called within ~30 seconds of receiving the callback query, or Telegram will auto-expire it.
+     *
+     * @param callbackQueryId Unique identifier for the query (from [CallbackQuery.id])
+     * @param text Text of the notification (1-200 characters). If empty, no notification is shown
+     * @param showAlert If true, show text as a modal alert; if false, show as a subtle toast notification
+     * @param url URL to be opened in the user's browser (e.g., for game auth or login flows)
+     * @param cacheTime The maximum amount of time (in seconds) to cache the answer on Telegram servers.
+     *                  Reduces repeated callbacks for the same button (useful for static actions).
+     * @return True if the answer was sent successfully
+     *
+     * @throws TelegramApiException if:
+     *   - callbackQueryId is invalid or expired
+     *   - text is longer than 200 characters
+     *   - bot is not a member of the chat (for certain callback types)
+     *
+     * @see CallbackQuery
+     * @see InlineKeyboardMarkup
+     * @see editMessageReplyMarkup
      */
     suspend fun answerCallbackQuery(
         callbackQueryId: String,
@@ -290,6 +838,15 @@ interface TelegramApi {
         showAlert: Boolean = false,
         url: String? = null,
         cacheTime: Duration? = null,
+    ): Boolean
+
+    suspend fun answerInlineQuery(
+        inlineQueryId: String,
+        results: List<InlineQueryResult>,
+        cacheTime: Duration? = null,
+        isPersonal: Boolean? = null,
+        nextOffset: String? = null,
+        button: InlineQueryResultsButton? = null,
     ): Boolean
 
     // ==================== FILES. ====================
@@ -303,8 +860,8 @@ interface TelegramApi {
      * - `InputFile.fromPath(path)` — upload local file
      * - `InputFile.fromBytes(bytes, "photo.jpg")` — from memory
      *
-     * Example:
-     * ```
+     * Samples:
+     * ```kotlin
      * client.sendPhoto(
      *     chatId = chatId,
      *     photo = InputFile.fromUrl("https://example.com/cat.jpg"),
@@ -338,15 +895,74 @@ interface TelegramApi {
     ): Message
 
     /**
-     * Send audio file (music).
+     * Send an audio file (music track) to a chat.
      *
-     * For voice messages use [sendVoice].
+     * Samples:
+     * ```kotlin
+     * // Send MP3 with metadata
+     * client.sendAudio(
+     *     chatId = chatId,
+     *     audio = InputFile.fromPath("/music/track.mp3"),
+     *     title = "Summer Vibes",
+     *     performer = "DJ Example",
+     *     duration = 3.minutes,
+     *     thumbnail = InputFile.fromUrl("https://example.com/cover.jpg"),
+     *     caption = "🎵 New release!",
+     *     parseMode = ParseMode.HTML
+     * )
      *
-     * @param audio Audio file (MP3 recommended, max 50MB)
-     * @param duration Duration in seconds
-     * @param performer Artist name
-     * @param title Track title
-     * @param thumbnail Thumbnail of album cover (JPEG, max 200KB, 320x320)
+     * // Send from URL (Telegram downloads it)
+     * client.sendAudio(
+     *     chatId = chatId,
+     *     audio = InputFile.fromUrl("https://cdn.example.com/podcast.ogg"),
+     *     title = "Episode 42",
+     *     performer = "My Podcast"
+     * )
+     * ```
+     *
+     * Telegram displays audio with:
+     * • Album art (if [thumbnail] provided)
+     * • Title, performer, duration metadata
+     * • In-chat audio player with seek/controls
+     *
+     * For voice messages (recorded speech), use [sendVoice] instead.
+     *
+     * File requirements:
+     * • Format: MP3 recommended (other formats may work but not guaranteed)
+     * • Max size: 50 MB (20 MB for free bots)
+     * • Duration: No hard limit, but long files may be rejected
+     *
+     * @param chatId Unique identifier for the target chat or username (@channel)
+     * @param audio Audio file to send ([InputFile] abstraction)
+     * @param businessConnectionId Unique identifier of the business connection
+     * @param messageThreadId Identifier of the message thread (for supergroups with topics)
+     * @param directMessagesTopicId Topic ID for business DMs
+     * @param caption Caption for the audio message (0-1024 characters)
+     * @param parseMode Formatting mode for caption: [ParseMode.HTML], [ParseMode.MARKDOWN_V2], or null
+     * @param captionEntities List of special entities for caption. If specified, [parseMode] is ignored
+     * @param duration Duration of the audio. (optional, but recommended for proper display)
+     * @param performer Artist/performer name (displayed in player)
+     * @param title Track title (displayed in player)
+     * @param thumbnail Album cover thumbnail (JPEG, max 200KB, recommended 320x320)
+     * @param disableNotification Send silently (no notification to users)
+     * @param protectContent Prevent forwarding/saving of the sent audio
+     * @param allowPaidBroadcast Allow sending to paid broadcast channels
+     * @param messageEffectId Message effect to apply (Premium feature)
+     * @param suggestedPostParameters Scheduling options for channel posts
+     * @param replyParameters Reply configuration (quote, etc.)
+     * @param replyMarkup Inline/reply keyboard attached to the message
+     * @return The sent [Message] containing the audio
+     *
+     * @throws TelegramApiException if:
+     *   - chat not found or bot has no send rights
+     *   - audio file is invalid or unsupported format
+     *   - thumbnail is invalid (wrong format/size)
+     *   - file size exceeds limits
+     *
+     * @see sendVoice
+     * @see sendVideo
+     * @see sendDocument
+     * @see InputFile
      */
     suspend fun sendAudio(
         chatId: ChatId,
@@ -357,7 +973,7 @@ interface TelegramApi {
         caption: String? = null,
         parseMode: ParseMode? = null,
         captionEntities: List<MessageEntity>? = null,
-        duration: Int? = null,
+        duration: Duration? = null,
         performer: String? = null,
         title: String? = null,
         thumbnail: InputFile? = null,
@@ -371,12 +987,66 @@ interface TelegramApi {
     ): Message
 
     /**
-     * Send voice message (opus encoded, .ogg).
+     * Send a voice message (recorded speech) to a chat.
      *
-     * For music files use [sendAudio].
+     * Samples:
+     * ```kotlin
+     * // Send pre-recorded voice message
+     * client.sendVoice(
+     *     chatId = chatId,
+     *     voice = InputFile.fromPath("/voice/greeting.ogg"),
+     *     duration = 15.seconds,
+     *     caption = "👋 Welcome message"
+     * )
      *
-     * @param voice Voice message (OGG_OPUS, max 1MB per minute, max 20MB)
-     * @param duration Duration in seconds
+     * // Send generated voice (e.g., TTS)
+     * val ttsBytes = textToSpeech("Hello!") // your TTS logic
+     * client.sendVoice(
+     *     chatId = chatId,
+     *     voice = InputFile.fromBytes(ttsBytes, "tts.ogg"),
+     *     caption = "🤖 Bot says:"
+     * )
+     * ```
+     *
+     * Voice messages are displayed as:
+     * • Waveform player with play/pause/seek
+     * • Duration label
+     * • "Voice message" badge (distinct from audio files)
+     *
+     * For music/audio files, use [sendAudio] instead.
+     *
+     * File requirements:
+     * • Format: OGG_OPUS (required by Telegram)
+     * • Sample rate: 48 kHz recommended
+     * • Channels: Mono
+     * • Max size: 20 MB (or ~1 MB per minute of audio)
+     *
+     * @param chatId Unique identifier for the target chat or username (@channel)
+     * @param voice Voice message to send ([InputFile] abstraction, must be OGG_OPUS)
+     * @param businessConnectionId Unique identifier of the business connection
+     * @param messageThreadId Identifier of the message thread (for supergroups with topics)
+     * @param directMessagesTopicId Topic ID for business DMs
+     * @param caption Caption for the voice message (0-1024 characters)
+     * @param parseMode Formatting mode for caption: [ParseMode.HTML], [ParseMode.MARKDOWN_V2], or null
+     * @param captionEntities List of special entities for caption. If specified, [parseMode] is ignored
+     * @param duration Voice duration. (optional, but helps with proper display)
+     * @param disableNotification Send silently (no notification to users)
+     * @param protectContent Prevent forwarding/saving of the voice message
+     * @param allowPaidBroadcast Allow sending to paid broadcast channels
+     * @param messageEffectId Message effect to apply (Premium feature)
+     * @param suggestedPostParameters Scheduling options for channel posts
+     * @param replyParameters Reply configuration (quote, etc.)
+     * @param replyMarkup Inline/reply keyboard attached to the message
+     * @return The sent [Message] containing the voice message
+     *
+     * @throws TelegramApiException if:
+     *   - chat not found or bot has no send rights
+     *   - voice file is not OGG_OPUS or is corrupted
+     *   - file size exceeds limits
+     *
+     * @see sendAudio
+     * @see sendVideoNote
+     * @see InputFile
      */
     suspend fun sendVoice(
         chatId: ChatId,
@@ -387,7 +1057,7 @@ interface TelegramApi {
         caption: String? = null,
         parseMode: ParseMode? = null,
         captionEntities: List<MessageEntity>? = null,
-        duration: Int? = null,
+        duration: Duration? = null,
         disableNotification: Boolean? = null,
         protectContent: Boolean? = null,
         allowPaidBroadcast: Boolean? = null,
@@ -398,11 +1068,79 @@ interface TelegramApi {
     ): Message
 
     /**
-     * Send general file (document).
+     * Send a general file (document) to a chat.
      *
-     * @param document File to send (max 50MB, 20MB for free bots)
-     * @param thumbnail Document thumbnail (JPEG, max 200KB, 320x320)
-     * @param disableContentTypeDetection Disable automatic content type detection
+     * Samples:
+     * ```kotlin
+     * // Send PDF with thumbnail
+     * client.sendDocument(
+     *     chatId = chatId,
+     *     document = InputFile.fromPath("/docs/manual.pdf"),
+     *     thumbnail = InputFile.fromUrl("https://example.com/pdf-icon.jpg"),
+     *     caption = "📄 User manual v2.1",
+     *     parseMode = ParseMode.HTML
+     * )
+     *
+     * // Send ZIP archive (disable content detection to avoid preview)
+     * client.sendDocument(
+     *     chatId = chatId,
+     *     document = InputFile.fromPath("/archive/data.zip"),
+     *     caption = "📦 Exported data",
+     *     disableContentTypeDetection = true
+     * )
+     *
+     * // Send from memory (e.g., generated report)
+     * val pdfBytes = generateReport() // your logic
+     * client.sendDocument(
+     *     chatId = chatId,
+     *     document = InputFile.fromBytes(pdfBytes, "report.pdf"),
+     *     caption = "📊 Your monthly report"
+     * )
+     * ```
+     *
+     * Documents are displayed with:
+     * • File name and icon based on MIME type
+     * • File size label
+     * • Download button
+     * • Optional caption and keyboard
+     *
+     * Supported use cases:
+     * • PDFs, ZIP archives, DOCX, XLSX, etc.
+     * • Any file type (Telegram doesn't restrict extensions)
+     * • Files up to 50 MB (20 MB for free bots)
+     *
+     * For media files (photos, videos, audio), prefer specialized methods
+     * ([sendPhoto], [sendVideo], etc.) for better in-chat rendering.
+     *
+     * @param chatId Unique identifier for the target chat or username (@channel)
+     * @param document File to send ([InputFile] abstraction)
+     * @param businessConnectionId Unique identifier of the business connection
+     * @param messageThreadId Identifier of the message thread (for supergroups with topics)
+     * @param directMessagesTopicId Topic ID for business DMs
+     * @param thumbnail Document thumbnail (JPEG, max 200KB, 320x320) — shown for PDFs/images
+     * @param caption Caption for the document (0-1024 characters)
+     * @param parseMode Formatting mode for caption: [ParseMode.HTML], [ParseMode.MARKDOWN_V2], or null
+     * @param captionEntities List of special entities for caption. If specified, [parseMode] is ignored
+     * @param disableContentTypeDetection Disable automatic MIME type detection (send as generic file)
+     * @param disableNotification Send silently (no notification to users)
+     * @param protectContent Prevent forwarding/saving/downloading of the document
+     * @param allowPaidBroadcast Allow sending to paid broadcast channels
+     * @param messageEffectId Message effect to apply (Premium feature)
+     * @param suggestedPostParameters Scheduling options for channel posts
+     * @param replyParameters Reply configuration (quote, etc.)
+     * @param replyMarkup Inline/reply keyboard attached to the message
+     * @return The sent [Message] containing the document
+     *
+     * @throws TelegramApiException if:
+     *   - chat not found or bot has no send rights
+     *   - file is invalid or corrupted
+     *   - file size exceeds limits (50 MB / 20 MB)
+     *   - thumbnail is invalid format/size
+     *
+     * @see sendPhoto
+     * @see sendVideo
+     * @see sendAudio
+     * @see InputFile
      */
     suspend fun sendDocument(
         chatId: ChatId,
@@ -425,15 +1163,89 @@ interface TelegramApi {
     ): Message
 
     /**
-     * Send video file (MP4).
+     * Send a video file (MP4) to a chat.
      *
-     * @param video Video to send (max 50MB, 20MB for free bots)
-     * @param width Video width
-     * @param height Video height
-     * @param thumbnail Video thumbnail (JPEG, max 200KB)
-     * @param cover Cover image for the video
-     * @param startTimestamp Start timestamp for the video in the message
-     * @param supportsStreaming Streamable video URL sent by Telegram
+     * Samples:
+     * ```kotlin
+     * // Send MP4 with custom thumbnail and caption
+     * client.sendVideo(
+     *     chatId = chatId,
+     *     video = InputFile.fromPath("/videos/demo.mp4"),
+     *     thumbnail = InputFile.fromUrl("https://example.com/thumb.jpg"),
+     *     caption = "🎬 Check this out!",
+     *     parseMode = ParseMode.HTML,
+     *     duration = 45.seconds,
+     *     width = 1280,
+     *     height = 720,
+     *     supportsStreaming = true
+     * )
+     *
+     * // Send with spoiler (hidden until tapped)
+     * client.sendVideo(
+     *     chatId = chatId,
+     *     video = InputFile.fromUrl("https://example.com/surprise.mp4"),
+     *     caption = "🎁 Tap to reveal!",
+     *     hasSpoiler = true
+     * )
+     *
+     * // Start playback from specific timestamp
+     * client.sendVideo(
+     *     chatId = chatId,
+     *     video = InputFile.fromId("BAAD..."), // existing video
+     *     startTimestamp = 2.minutes,
+     *     caption = "⏭️ Jump to the good part"
+     * )
+     * ```
+     *
+     * Videos are displayed with:
+     * • In-chat player with play/pause/seek/volume
+     * • Thumbnail preview (auto-generated or custom)
+     * • Duration, resolution, and file size labels
+     * • Optional caption above or below the video
+     *
+     * Video requirements:
+     * • Format: MP4 (H.264 video + AAC audio recommended)
+     * • Max size: 50 MB (20 MB for free bots)
+     * • Max duration: No hard limit, but long videos may be rejected
+     * • Aspect ratio: Any, but 16:9 or 9:16 recommended for best display
+     *
+     * @param chatId Unique identifier for the target chat or username (@channel)
+     * @param video Video file to send ([InputFile] abstraction)
+     * @param businessConnectionId Unique identifier of the business connection
+     * @param messageThreadId Identifier of the message thread (for supergroups with topics)
+     * @param directMessagesTopicId Topic ID for business DMs
+     * @param duration Video duration (optional, but recommended for proper display)
+     * @param width Video width in pixels (optional, helps with thumbnail generation)
+     * @param height Video height in pixels (optional)
+     * @param thumbnail Custom thumbnail (JPEG, max 200KB, recommended 320x320)
+     * @param cover Cover image shown before playback (Premium feature)
+     * @param startTimestamp Start playback from this timestamp.
+     * @param caption Caption for the video (0-1024 characters)
+     * @param parseMode Formatting mode for caption: [ParseMode.HTML], [ParseMode.MARKDOWN_V2], or null
+     * @param captionEntities List of special entities for caption. If specified, [parseMode] is ignored
+     * @param showCaptionAboveMedia Show caption above the video instead of below
+     * @param hasSpoiler Hide the video behind a spoiler animation (user must tap to reveal)
+     * @param supportsStreaming Mark video as streamable (enables progressive download)
+     * @param disableNotification Send silently (no notification to users)
+     * @param protectContent Prevent forwarding/saving/downloading of the video
+     * @param allowPaidBroadcast Allow sending to paid broadcast channels
+     * @param messageEffectId Message effect to apply (Premium feature)
+     * @param suggestedPostParameters Scheduling options for channel posts
+     * @param replyParameters Reply configuration (quote, etc.)
+     * @param replyMarkup Inline/reply keyboard attached to the message
+     * @return The sent [Message] containing the video
+     *
+     * @throws TelegramApiException if:
+     *   - chat not found or bot has no send rights
+     *   - video file is invalid, corrupted, or unsupported codec
+     *   - thumbnail/cover is invalid format/size
+     *   - file size exceeds limits
+     *
+     * @see sendPhoto
+     * @see sendAnimation
+     * @see sendVideoNote
+     * @see editMessageMedia
+     * @see InputFile
      */
     suspend fun sendVideo(
         chatId: ChatId,
@@ -441,12 +1253,12 @@ interface TelegramApi {
         businessConnectionId: String? = null,
         messageThreadId: Int? = null,
         directMessagesTopicId: Int? = null,
-        duration: Int? = null,
+        duration: Duration? = null,
         width: Int? = null,
         height: Int? = null,
         thumbnail: InputFile? = null,
         cover: InputFile? = null,
-        startTimestamp: Int? = null,
+        startTimestamp: Duration? = null,
         caption: String? = null,
         parseMode: ParseMode? = null,
         captionEntities: List<MessageEntity>? = null,
@@ -463,11 +1275,68 @@ interface TelegramApi {
     ): Message
 
     /**
-     * Send rounded square video (video message).
+     * Send a rounded square video message ("video note") to a chat.
      *
-     * @param videoNote Video note to send (max 1 minute, 20MB)
-     * @param length Video width and height (diameter of the video message), 1-640
-     * @param thumbnail Thumbnail of file (JPEG, max 200KB)
+     * Samples:
+     * ```kotlin
+     * // Send a pre-recorded video note
+     * client.sendVideoNote(
+     *     chatId = chatId,
+     *     videoNote = InputFile.fromPath("/notes/greeting.mp4"),
+     *     duration = 15.seconds,
+     *     length = 640, // full HD square
+     *     thumbnail = InputFile.fromUrl("https://example.com/preview.jpg")
+     * )
+     *
+     * // Send generated video note (e.g., screen recording)
+     * val bytes = recordScreenClip() // your logic, must be square MP4
+     * client.sendVideoNote(
+     *     chatId = chatId,
+     *     videoNote = InputFile.fromBytes(bytes, "clip.mp4"),
+     *     duration = 30.seconds,
+     *     length = 480
+     * )
+     * ```
+     *
+     * Video notes are displayed as:
+     * • Circular player (like Telegram's native video messages)
+     * • Waveform audio visualization
+     * • Duration label
+     * • No caption support (by Telegram API design)
+     *
+     * Video note requirements:
+     * • Format: MP4 (H.264 video + AAC audio)
+     * • Aspect ratio: 1:1 (square) — non-square videos are cropped
+     * • Max duration: 60 seconds
+     * • Max size: 20 MB
+     * • Resolution: Recommended 640x640 (range: 1-640 for [length])
+     *
+     * @param chatId Unique identifier for the target chat or username (@channel)
+     * @param videoNote Video note to send ([InputFile] abstraction, must be square MP4)
+     * @param businessConnectionId Unique identifier of the business connection
+     * @param messageThreadId Identifier of the message thread (for supergroups with topics)
+     * @param directMessagesTopicId Topic ID for business DMs
+     * @param duration Video note duration. (max 60 seconds, optional but recommended)
+     * @param length Width and height of the video (diameter of the circular player, 1-640)
+     * @param thumbnail Thumbnail for the video note (JPEG, max 200KB, recommended 320x320)
+     * @param disableNotification Send silently (no notification to users)
+     * @param protectContent Prevent forwarding/saving of the video note
+     * @param allowPaidBroadcast Allow sending to paid broadcast channels
+     * @param messageEffectId Message effect to apply (Premium feature)
+     * @param suggestedPostParameters Scheduling options for channel posts
+     * @param replyParameters Reply configuration (quote, etc.)
+     * @param replyMarkup Inline/reply keyboard attached to the message
+     * @return The sent [Message] containing the video note
+     *
+     * @throws TelegramApiException if:
+     *   - chat not found or bot has no send rights
+     *   - video is not square or exceeds 60 seconds
+     *   - file size exceeds 20 MB
+     *   - thumbnail is invalid format/size
+     *
+     * @see sendVideo
+     * @see sendVoice
+     * @see InputFile
      */
     suspend fun sendVideoNote(
         chatId: ChatId,
@@ -475,7 +1344,7 @@ interface TelegramApi {
         businessConnectionId: String? = null,
         messageThreadId: Int? = null,
         directMessagesTopicId: Int? = null,
-        duration: Int? = null,
+        duration: Duration? = null,
         length: Int? = null,
         thumbnail: InputFile? = null,
         disableNotification: Boolean? = null,
@@ -488,9 +1357,82 @@ interface TelegramApi {
     ): Message
 
     /**
-     * Send animation (GIF or H.264/MPEG-4 AVC video without sound).
+     * Send an animation (GIF or H.264/MPEG-4 video without sound) to a chat.
      *
-     * @param animation Animation to send (max 50MB)
+     * Samples:
+     * ```kotlin
+     * // Send GIF from URL
+     * client.sendAnimation(
+     *     chatId = chatId,
+     *     animation = InputFile.fromUrl("https://example.com/reaction.gif"),
+     *     caption = "😂 When the code works on first try",
+     *     parseMode = ParseMode.HTML
+     * )
+     *
+     * // Send MP4 animation (smaller file size than GIF)
+     * client.sendAnimation(
+     *     chatId = chatId,
+     *     animation = InputFile.fromPath("/animations/loading.mp4"),
+     *     caption = "⏳ Loading...",
+     *     width = 200,
+     *     height = 200,
+     *     duration = 3.seconds
+     * )
+     *
+     * // Send with spoiler (hidden until tapped)
+     * client.sendAnimation(
+     *     chatId = chatId,
+     *     animation = InputFile.fromId("CgAC..."), // existing animation
+     *     caption = "🎁 Surprise!",
+     *     hasSpoiler = true
+     * )
+     * ```
+     *
+     * Animations are displayed as:
+     * • Autoplaying looped video (like GIFs)
+     * • With play/pause controls on tap
+     * • Optional caption above or below
+     * • No audio track (sound is stripped by Telegram)
+     *
+     * Animation requirements:
+     * • Format: GIF or MP4 (H.264 video, no audio)
+     * • Max size: 50 MB (20 MB for free bots)
+     * • Max duration: No hard limit, but short clips (<30s) recommended
+     * • Resolution: Any, but keep file size reasonable for fast loading
+     *
+     * @param chatId Unique identifier for the target chat or username (@channel)
+     * @param animation Animation file to send ([InputFile] abstraction)
+     * @param businessConnectionId Unique identifier of the business connection
+     * @param messageThreadId Identifier of the message thread (for supergroups with topics)
+     * @param directMessagesTopicId Topic ID for business DMs
+     * @param duration Animation duration. (optional, helps with proper display)
+     * @param width Animation width in pixels (optional)
+     * @param height Animation height in pixels (optional)
+     * @param thumbnail Custom thumbnail (JPEG, max 200KB, recommended 320x320)
+     * @param caption Caption for the animation (0-1024 characters)
+     * @param parseMode Formatting mode for caption: [ParseMode.HTML], [ParseMode.MARKDOWN_V2], or null
+     * @param captionEntities List of special entities for caption. If specified, [parseMode] is ignored
+     * @param showCaptionAboveMedia Show caption above the animation instead of below
+     * @param hasSpoiler Hide the animation behind a spoiler animation (user must tap to reveal)
+     * @param disableNotification Send silently (no notification to users)
+     * @param protectContent Prevent forwarding/saving of the animation
+     * @param allowPaidBroadcast Allow sending to paid broadcast channels
+     * @param messageEffectId Message effect to apply (Premium feature)
+     * @param suggestedPostParameters Scheduling options for channel posts
+     * @param replyParameters Reply configuration (quote, etc.)
+     * @param replyMarkup Inline/reply keyboard attached to the message
+     * @return The sent [Message] containing the animation
+     *
+     * @throws TelegramApiException if:
+     *   - chat not found or bot has no send rights
+     *   - animation file is invalid or corrupted
+     *   - file has audio track (will be stripped, but may cause issues)
+     *   - file size exceeds limits
+     *
+     * @see sendVideo
+     * @see sendPhoto
+     * @see sendDocument
+     * @see InputFile
      */
     suspend fun sendAnimation(
         chatId: ChatId,

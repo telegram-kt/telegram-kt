@@ -14,7 +14,25 @@ sealed interface InputFile {
     data class ByteArrayValue(
         val bytes: ByteArray,
         val fileName: String
-    ) : InputFile
+    ) : InputFile {
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (javaClass != other?.javaClass) return false
+
+            other as ByteArrayValue
+
+            if (!bytes.contentEquals(other.bytes)) return false
+            if (fileName != other.fileName) return false
+
+            return true
+        }
+
+        override fun hashCode(): Int {
+            var result = bytes.contentHashCode()
+            result = 31 * result + fileName.hashCode()
+            return result
+        }
+    }
 
     data class PathValue(val path: Path) : InputFile {
         fun readBytes(): ByteArray = SystemFileSystem.source(path).buffered().use { it.readByteArray() }

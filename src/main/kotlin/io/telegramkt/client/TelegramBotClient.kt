@@ -47,6 +47,7 @@ import io.telegramkt.model.gift.owned.OwnedGifts
 import io.telegramkt.model.inline.InlineQueryResult
 import io.telegramkt.model.keyboard.button.prepared.PreparedKeyboardButton
 import io.telegramkt.model.keyboard.button.prepared.PreparedKeyboardButtonType
+import io.telegramkt.model.keyboard.inline.InlineQueryResultsButton
 import io.telegramkt.model.keyboard.reply.InlineKeyboardMarkup
 import io.telegramkt.model.keyboard.reply.ReplyMarkup
 import io.telegramkt.model.keyboard.reply.parameters.ReplyParameters
@@ -405,6 +406,22 @@ class TelegramBotClient(
         }
     }
 
+    override suspend fun answerInlineQuery(
+        inlineQueryId: String,
+        results: List<InlineQueryResult>,
+        cacheTime: Duration?,
+        isPersonal: Boolean?,
+        nextOffset: String?,
+        button: InlineQueryResultsButton?
+    ): Boolean = call("answerInlineQuery") {
+        parameter("inline_query_id", inlineQueryId)
+        parameter("results", results)
+        parameter("cache_time", cacheTime)
+        parameter("is_personal", isPersonal)
+        parameter("next_offset", nextOffset)
+        parameter("button", button)
+    }
+
     override suspend fun sendPhoto(
         chatId: ChatId,
         photo: InputFile,
@@ -452,7 +469,7 @@ class TelegramBotClient(
         caption: String?,
         parseMode: ParseMode?,
         captionEntities: List<MessageEntity>?,
-        duration: Int?,
+        duration: Duration?,
         performer: String?,
         title: String?,
         thumbnail: InputFile?,
@@ -494,7 +511,7 @@ class TelegramBotClient(
         caption: String?,
         parseMode: ParseMode?,
         captionEntities: List<MessageEntity>?,
-        duration: Int?,
+        duration: Duration?,
         disableNotification: Boolean?,
         protectContent: Boolean?,
         allowPaidBroadcast: Boolean?,
@@ -565,12 +582,12 @@ class TelegramBotClient(
         businessConnectionId: String?,
         messageThreadId: Int?,
         directMessagesTopicId: Int?,
-        duration: Int?,
+        duration: Duration?,
         width: Int?,
         height: Int?,
         thumbnail: InputFile?,
         cover: InputFile?,
-        startTimestamp: Int?,
+        startTimestamp: Duration?,
         caption: String?,
         parseMode: ParseMode?,
         captionEntities: List<MessageEntity>?,
@@ -617,7 +634,7 @@ class TelegramBotClient(
         businessConnectionId: String?,
         messageThreadId: Int?,
         directMessagesTopicId: Int?,
-        duration: Int?,
+        duration: Duration?,
         length: Int?,
         thumbnail: InputFile?,
         disableNotification: Boolean?,
